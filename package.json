@@ -1,0 +1,21 @@
+{
+  "name": "tf-service-manager",
+  "version": "1.0.0",
+  "description": "Work in progress :)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "cd ./server && npm i && cd ../client && npm i",
+    "lint": "cd ./server && npm run lint && cd ../client && npm run lint",
+    "lint:fix": "cd ./server && npm run lint:fix && cd ../client && npm run lint:fix",
+    "start": "gulp runServiceManager"
+  },
+  "author": "TechFides Solutions s.r.o.",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "gulp": "^4.0.2",
+    "gulp-cli": "^2.3.0",
+    "strip-ansi": "5.2.0"
+  }
+}
