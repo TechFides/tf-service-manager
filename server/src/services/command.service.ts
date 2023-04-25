@@ -3,12 +3,14 @@ import { spawn } from 'child_process';
 import { EventsGateway } from '../events.gateway';
 import * as path from 'path';
 import * as kill from 'tree-kill';
+import * as fs from 'fs';
 
 import type { BaseService } from './services.service';
 import { ServiceRunStatus, ServicesService, Task } from './services.service';
 import { TaskDto } from '../dto/service.dto';
 import { BranchTaskDto } from 'src/dto/branch-task.dto';
 import { runCommand } from 'src/utils/process';
+import { ConfigService } from '@nestjs/config';
 
 export enum DefaultTask {
   GIT_CLONE = 'GIT_CLONE',
@@ -84,19 +86,38 @@ export const baseTasks: Task[] = [
   },
 ];
 
+const ensureDirectory = (directory: string): boolean => {
+  try {
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory);
+    }
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+  return true;
+};
+
 @Injectable()
 export class CommandService {
   private readonly npmCommand: string;
   private readonly rmCommand: string;
+  private readonly servicesDirectory: string;
   constructor(
     private readonly eventsGateway: EventsGateway,
     private readonly servicesService: ServicesService,
+    configService: ConfigService,
   ) {
     this.npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     this.rmCommand =
       process.platform === 'win32'
         ? `Remove-Item -Recurse -Force -Path`
         : `rm -rf`;
+    let directory = configService.get<string>('services_directory');
+    if (directory[0] === '.') {
+      directory = `${__dirname}/${directory}`;
+    }
+    this.servicesDirectory = directory;
   }
 
   getTasks(): TaskDto[] {
@@ -184,7 +205,10 @@ export class CommandService {
         }
 
         command = `git clone ${repoUrl}`;
-        cwd = path.resolve(`${__dirname}/../../../../services`);
+        cwd = path.resolve(this.servicesDirectory);
+        if (!ensureDirectory(this.servicesDirectory)) {
+          break;
+        }
         this.runProcess(task, command, '', service, cwd);
         break;
       /**
@@ -192,7 +216,10 @@ export class CommandService {
        *******************************************************/
       case DefaultTask.REMOVE_SERVICE:
         command = `${this.rmCommand} ${serviceFolder}`;
-        cwd = path.resolve(`${__dirname}/../../../../services`);
+        cwd = path.resolve(this.servicesDirectory);
+        if (!ensureDirectory(this.servicesDirectory)) {
+          break;
+        }
         this.runProcess(task, command, '', service, cwd, shell, () => {
           const serviceToUpdate = this.servicesService
             .getServices()

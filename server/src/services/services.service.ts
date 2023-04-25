@@ -73,6 +73,7 @@ const ensureTaskHasRequiredFields = (task: Task): void => {
 export class ServicesService {
   private readonly services: BaseService[] = [];
   private readonly genericTasks: Task[] = [];
+  private readonly servicesDirectory: string;
   constructor(configService: ConfigService) {
     this.genericTasks = configService.get<Task[]>('generic_tasks');
     for (const task of this.genericTasks) {
@@ -95,6 +96,11 @@ export class ServicesService {
       baseService.runningTasks = [];
       this.services.push(service as BaseService);
     }
+    let directory = configService.get<string>('services_directory');
+    if (directory[0] === '.') {
+      directory = `${__dirname}/${directory}`;
+    }
+    this.servicesDirectory = directory;
   }
   async getServicesDto(): Promise<ServiceDto[]> {
     const result = [];
@@ -158,7 +164,7 @@ export class ServicesService {
   async getServiceNpmScripts(service: string): Promise<string[]> {
     try {
       const packageJsonPath = path.resolve(
-        `${__dirname}/../../../../services/${service
+        `${this.servicesDirectory}/${service
           .toLowerCase()
           .split('_')
           .join('-')}/package.json`,
@@ -231,8 +237,7 @@ export class ServicesService {
 
   getServicePath(service: string): string {
     return path.resolve(
-      __dirname,
-      `../../../../services/${service.toLowerCase().split('_').join('-')}`,
+      `${this.servicesDirectory}/${service.toLowerCase().split('_').join('-')}`,
     );
   }
 
