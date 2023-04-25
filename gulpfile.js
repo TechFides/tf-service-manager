@@ -1,5 +1,5 @@
 /* eslint-env node */
-const {series, parallel} = require('gulp');
+const { parallel} = require('gulp');
 const spawn = require('child_process').spawn;
 const chalk = require('chalk');
 const stripAnsi = require('strip-ansi');
@@ -44,14 +44,8 @@ function runProcess(command, prefix, color, cwd, shell) {
 async function runServiceManagerBackend() {
     const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     await runProcess(
-        `cp .env.example .env`,
-        '[BACKEND]',
-        'green',
-        `./server`,
-    );
-    await runProcess(
         `${command} run dev`,
-        '[BACKEND]',
+        '[SERVER]',
         'green',
         `./server`,
     );
@@ -61,7 +55,7 @@ async function runServiceManagerFrontend() {
     const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     await runProcess(
         `${command} run dev`,
-        '[FRONTEND]',
+        '[CLIENT]',
         'blue',
         `./client`,
     );
