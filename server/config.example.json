@@ -1,4 +1,5 @@
 {
+  "services_directory": "../../../services",
   "services": [
     {
       "name": "SERVICE_1",

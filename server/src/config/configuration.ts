@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 
 const defaultConfig: Record<string, any> = {
+  services_directory: '../../../services',
   services: [],
   generic_tasks: [],
 };
