@@ -6,3 +6,6 @@ Work in progress :)
 1. `npm i`
 2. `npm start`
 3. open http://localhost:5173/
+
+## Configuration
+See [docs/configuration.md](docs/configuration.md)
