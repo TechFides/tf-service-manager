@@ -200,6 +200,8 @@ export class CommandService {
           )}.git ${serviceFolder}`;
         } else if (attributes.gitCheckoutType === 'https') {
           repoUrl = `https://${serviceToClone.gitUrl}`;
+        } else if (attributes.gitCheckoutType === 'https+basicauth') {
+          repoUrl = `https://${attributes.basicAuth}@${serviceToClone.gitUrl}`;
         } else {
           throw new Error('Unknown gitCheckoutType :( ');
         }
