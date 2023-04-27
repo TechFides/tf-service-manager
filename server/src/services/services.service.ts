@@ -243,7 +243,7 @@ export class ServicesService {
 
   serviceIsCloned(service: BaseService) {
     const cwd = this.getServicePath(service.name);
-    return fs.existsSync(cwd) && fs.readdirSync(cwd).length;
+    return fs.existsSync(cwd) && fs.readdirSync(cwd).length > 1;
   }
 
   serviceHasBranch(service: BaseService) {
