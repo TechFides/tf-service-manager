@@ -6,6 +6,7 @@ import { EventsGateway } from '../events.gateway';
 import { runCommand } from 'src/utils/process';
 import { CommandService } from './command.service';
 import { sleep } from 'src/utils/utils';
+import { ConfigService } from '@nestjs/config';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pidtree = require('pidtree');
 
@@ -15,9 +16,16 @@ export class MonitorService {
     private readonly servicesService: ServicesService,
     private readonly commandService: CommandService,
     private readonly eventsGateway: EventsGateway,
+    configService: ConfigService,
   ) {
     for (const service of servicesService.getServices()) {
-      this.loadCurrentBranchStatus(service);
+      const gitInterval = configService.get<number>('git_interval');
+      if (gitInterval > 0) {
+        // required to call function on THIS object, cannot just pass this.functionName
+        setInterval(() => {
+          this.loadCurrentBranchStatus(service);
+        }, gitInterval * 1000);
+      }
     }
   }
 
@@ -89,11 +97,7 @@ export class MonitorService {
       if (change) {
         this.eventsGateway.sendStatusUpdateToClient();
       }
-    } else {
-      await sleep(1000);
     }
-
-    this.loadCurrentBranchStatus(service);
   }
 
   @Cron('* * * * * *')

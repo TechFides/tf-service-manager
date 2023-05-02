@@ -46,7 +46,9 @@ The file has the following format:
       "runIfNotCloned": false,
       "icon": "person"
     }
-  ]
+  ],
+  "services_directory": "../../../services",
+  "git_interval": 5
 }
 ```
 
@@ -77,6 +79,11 @@ Tasks consist of the following configuration options
 ### Generic Tasks
 
 Same as regular tasks, but can be used in multiple services via the `genericTasks` configuration
+
+### Other
+
+- `services_directory` - path to the directory where git repositories will be stored
+- `git_interval` - how often (in seconds) `git fetch` is called for each repository after it is cloned (used to indicate new commits in the upstream) (0 = never)
 
 ### Substitution
 
