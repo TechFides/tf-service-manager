@@ -69,5 +69,6 @@
       "runIfNotCloned": false,
       "icon": "person"
     }
-  ]
+  ],
+  "git_interval": 5
 }
