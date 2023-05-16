@@ -16,6 +16,7 @@ export enum DefaultTask {
   GIT_CLONE = 'GIT_CLONE',
   GIT_PULL = 'GIT_PULL',
   GIT_RESET = 'GIT_RESET',
+  GIT_CHECKOUT = 'GIT_CHECKOUT',
   REMOVE_SERVICE = 'REMOVE_SERVICE',
   NPM_INSTALL = 'NPM_INSTALL',
   START_SERVICE = 'START_SERVICE',
@@ -40,6 +41,11 @@ export const branchTasks: BaseBranchTask[] = [
     color: 'grey-8',
     icon: 'restart_alt',
     confirmText: 'Do you really want to reset current branch?',
+  },
+  {
+    name: DefaultTask.GIT_CHECKOUT,
+    color: 'grey-8',
+    icon: 'alt_route',
   },
 ];
 
@@ -214,6 +220,12 @@ export class CommandService {
         this.runProcess(task, command, '', service, cwd);
         break;
       /**
+       * SWITCH BRANCH
+       *******************************************************/
+      case DefaultTask.GIT_CHECKOUT:
+        this.gitCheckout(service, attributes.branch, cwd);
+        break;
+      /**
        * REMOVE_SERVICE
        *******************************************************/
       case DefaultTask.REMOVE_SERVICE:
@@ -386,6 +398,32 @@ export class CommandService {
     } catch (error) {
       this.logError(serviceName, error);
     }
+  }
+
+  async gitCheckout(
+    serviceName: string,
+    branch: string | undefined,
+    cwd: string,
+  ) {
+    const service = this.servicesService
+      .getServices()
+      .find((s) => s.name === serviceName);
+    if (!service || !this.servicesService.serviceHasBranch(service)) {
+      return;
+    }
+    if (branch === undefined) {
+      branch = service.currentGitBranch;
+    }
+    const command = `git checkout ${branch}`;
+    await this.runProcess(
+      DefaultTask.GIT_CHECKOUT,
+      command,
+      '',
+      serviceName,
+      cwd,
+    );
+    await this.updateServiceStatus(service, cwd);
+    await this.gitReset(serviceName, cwd);
   }
 
   async updateServiceStatus(
