@@ -14,7 +14,7 @@
       }`"
     >
       <q-menu v-if="status.currentGitBranch">
-        <q-list style="width: 180px" class="bg-blue-grey-10">
+        <q-list style="width: auto" class="bg-blue-grey-10">
           <q-item>
             <q-item-section>
               <q-item-label overline>Git actions</q-item-label>
