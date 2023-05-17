@@ -412,7 +412,7 @@ export class CommandService {
       return;
     }
     if (branch === undefined) {
-      if (service.defaultGitBranch === undefined) {
+      if (!service.defaultGitBranch) {
         console.log(
           'GIT_CHECKOUT: no branch provided and no defaultBranch configured, not running',
         );
