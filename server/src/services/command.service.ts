@@ -362,6 +362,7 @@ export class CommandService {
     } catch (error) {
       this.logError(serviceName, error);
     }
+    this.servicesService.removeRunningTask(serviceName, DefaultTask.GIT_PULL);
   }
 
   async gitReset(serviceName: string, cwd: string) {
@@ -379,6 +380,7 @@ export class CommandService {
         cwd,
       );
       if (!remoteBranch || !this.servicesService.serviceHasBranch(service)) {
+        this.servicesService.removeRunningTask(serviceName, DefaultTask.GIT_RESET);
         return;
       }
 
@@ -388,6 +390,7 @@ export class CommandService {
         cwd,
       );
       if (!this.servicesService.serviceHasBranch(service)) {
+        this.servicesService.removeRunningTask(serviceName, DefaultTask.GIT_RESET);
         return;
       }
 
@@ -398,6 +401,7 @@ export class CommandService {
     } catch (error) {
       this.logError(serviceName, error);
     }
+    this.servicesService.removeRunningTask(serviceName, DefaultTask.GIT_RESET);
   }
 
   async gitCheckout(
@@ -416,20 +420,16 @@ export class CommandService {
         console.log(
           'GIT_CHECKOUT: no branch provided and no defaultBranch configured, not running',
         );
+        this.servicesService.removeRunningTask(serviceName, DefaultTask.GIT_CHECKOUT);
         return;
       }
       branch = service.defaultGitBranch;
     }
     const command = `git checkout ${branch}`;
-    await this.runProcess(
-      DefaultTask.GIT_CHECKOUT,
-      command,
-      '',
-      serviceName,
-      cwd,
-    );
+    await this.runCommandWithLog(command, serviceName, cwd, true);
     await this.updateServiceStatus(service, cwd);
     await this.gitReset(serviceName, cwd);
+    this.servicesService.removeRunningTask(serviceName, DefaultTask.GIT_CHECKOUT);
   }
 
   async updateServiceStatus(
