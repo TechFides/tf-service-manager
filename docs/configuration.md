@@ -27,7 +27,8 @@ The file has the following format:
           "runIfNotCloned": false,
           "icon": "priority_high"
         }
-      ]
+      ],
+      "defaultGitBranch": "develop"
     }
   ],
   "generic_tasks": [
@@ -64,6 +65,7 @@ Services consist of the following configuration options
 - `color` - service's color in FE
 - `genericTasks` - names of generic tasks to use, these are defined in the generic tasks section (optional)
 - `tasks` - list of tasks defined for the service (optional)
+- `defaultGitBranch` - branch to checkout with GIT\_CHECKOUT command when no branch is provided via an attribute
   
 ### Tasks
 
