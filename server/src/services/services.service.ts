@@ -30,6 +30,7 @@ export interface BaseService {
   runningNpmScript: string;
   runningTasks: string[];
   port: number;
+  defaultGitBranch?: string;
   currentGitBranch?: string;
   currentGitBranchHasChanges?: boolean;
   currentGitBranchAhead?: number;
@@ -54,6 +55,7 @@ export interface BaseServiceConfig {
   color: string; //see https://quasar.dev/style/color-palette#brand-colors
   genericTasks?: string[];
   tasks?: Task[];
+  defaultGitBranch?: string;
 }
 
 const ensureTaskHasRequiredFields = (task: Task): void => {
