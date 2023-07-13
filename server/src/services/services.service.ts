@@ -108,7 +108,7 @@ export class ServicesService {
     const result = [];
     for (const service of this.services) {
       const tasks: TaskDto[] = this.genericTasks.filter((task) =>
-        service.genericTasks.includes(task.name),
+        service.genericTasks?.includes(task.name),
       ) as TaskDto[];
 
       for (const task of service.tasks) {

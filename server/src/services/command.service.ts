@@ -255,7 +255,7 @@ export class CommandService {
         break;
       default:
         const requestedTask = serviceObject.tasks.find((t) => t.name === task);
-        if (serviceObject.genericTasks.includes(task)) {
+        if (serviceObject.genericTasks?.includes(task)) {
           this.performTask(
             serviceObject,
             this.servicesService.getGenericTasks().find((t) => t.name === task),
