@@ -14,7 +14,7 @@ The file has the following format:
       "npmRunLifecycle": "dev",
       "gitUrl": "gitlab.com/organization/repository",
       "port": 3000,
-      "appUrlSuffix": "/api-docs",
+      "appUrlSuffix": "api-docs",
       "color": "teal-9",
       "genericTasks": [
         "COPY_ENV"

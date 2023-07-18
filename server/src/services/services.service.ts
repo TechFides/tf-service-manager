@@ -118,7 +118,7 @@ export class ServicesService {
       result.push({
         name: service.name,
         color: service.color,
-        appUrl: `http://localhost:${service.port}${service.appUrlSuffix}`,
+        appUrl: `http://localhost:${service.port}/${service.appUrlSuffix}`,
         pipelineBadge: `https://${service.gitUrl}/badges/develop/pipeline.svg`,
         coverageBadge: `https://${service.gitUrl}/badges/develop/coverage.svg`,
         npmScripts: await this.getServiceNpmScripts(service.name),
@@ -183,9 +183,9 @@ export class ServicesService {
     }
   }
 
-  async waitOnService(service: string) {
-    const servicePort = this.services.find((s) => s.name === service).port;
-    const serviceUrl = `http-get://localhost:${servicePort}/`;
+  async waitOnService(serviceName: string) {
+    const service = this.services.find((s) => s.name === serviceName);
+    const serviceUrl = `http-get://localhost:${service.port}/${service.appUrlSuffix}`;
     return waitOn({
       resources: [serviceUrl],
       headers: {
@@ -193,11 +193,11 @@ export class ServicesService {
       },
     })
       .then(() => {
-        this.setServiceRunStatus(service, ServiceRunStatus.RUNNING);
+        this.setServiceRunStatus(serviceName, ServiceRunStatus.RUNNING);
       })
       .catch((err) => {
         console.log(err);
-        this.setServiceRunStatus(service, ServiceRunStatus.STOPPED);
+        this.setServiceRunStatus(serviceName, ServiceRunStatus.STOPPED);
       });
   }
 
