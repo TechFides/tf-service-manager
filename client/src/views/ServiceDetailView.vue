@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <div>
-      <q-card class="col-12">
+      <q-card flat class="col-12">
         <q-card-section class="row">
           <div class="text-h5">Service tasks</div>
           <branch-chip class="q-ml-md" :status="serviceStatus" />
@@ -74,8 +74,8 @@
       </q-card>
     </div>
     <div class="q-pt-md">
-      <q-card class="col-12">
-        <q-card-section class="">
+      <q-card flat class="col-12">
+        <q-card-section>
           <logs-explorer
             :logs="logsStore.logsForService(route.params.name)"
             :height="logsExplorerHeight"

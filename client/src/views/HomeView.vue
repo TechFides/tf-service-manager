@@ -4,7 +4,7 @@
       <div class="col-6"><cpu-usage-chart /></div>
       <div class="col-6"><memory-usage-chart /></div>
       <div class="col-12">
-        <q-card>
+        <q-card flat>
           <q-card-section>
             <div class="text-h6">Services Status</div>
           </q-card-section>

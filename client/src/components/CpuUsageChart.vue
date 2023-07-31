@@ -1,5 +1,5 @@
 <template>
-  <q-card>
+  <q-card flat>
     <q-card-section class="row">
       <div class="text-h6">CPU</div>
       <q-space />

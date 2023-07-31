@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md"
-    ><q-card
+    ><q-card flat
       ><q-card-section class="text-h4">TF Service manager</q-card-section>
 
       <q-separator />

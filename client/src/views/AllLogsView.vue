@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <div class="row full-height">
-      <q-card class="col-12 q-pa-sm">
+      <q-card flat class="col-12 q-pa-sm">
         <q-card-section class="">
           <logs-explorer
             :logs="logsStore.allLogs"
