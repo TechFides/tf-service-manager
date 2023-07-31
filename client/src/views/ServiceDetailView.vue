@@ -22,8 +22,9 @@
             size="sm"
             color="primary"
             label="npm scripts"
-            :menu-offset="[40, 0]"
+            :menu-offset="[40, 3]"
             :disable="serviceStatus.runningNpmScript !== ''"
+            unelevated
           >
             <q-list>
               <q-item
@@ -33,6 +34,7 @@
                 v-bind:key="npmScript"
                 clickable
                 v-close-popup
+                dense
                 @click="runNpmScript(npmScript, route.params.name)"
               >
                 <q-item-section>

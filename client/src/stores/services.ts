@@ -66,7 +66,12 @@ export const useServicesStore = defineStore({
     async getAllServices() {
       const response = await axios.get(SM_BACKEND_URL + "/services");
       const services = response.data.services as Service[];
-      this.services = services;
+      this.services = services.map((service) => {
+        return {
+          ...service,
+          npmScripts: service.npmScripts ? service.npmScripts.sort() : [],
+        };
+      });
       this.servicesMonitors = services.map((service) => {
         return {
           name: service.name,
