@@ -41,9 +41,20 @@
                     >
                   </q-td>
 
-                  <q-td key="branch" :props="props" class="text-left"
-                    ><branch-chip :status="props.row"
-                  /></q-td>
+                  <q-td key="branch" :props="props" class="text-left">
+                    <q-spinner-hourglass
+                      v-if="
+                        gitTasks.includes(
+                          servicesStore.servicesStatus.filter(
+                            (svc) => svc.name === props.row.name
+                          )[0].runningTask
+                        )
+                      "
+                      color="white"
+                      size="sm"
+                    />
+                    <branch-chip v-else :status="props.row" />
+                  </q-td>
 
                   <q-td key="cloned" :props="props">
                     <q-icon
@@ -64,7 +75,17 @@
                     v-for="task of tasksStore.tasks"
                     :props="props"
                   >
+                    <q-spinner-hourglass
+                      v-if="
+                        servicesStore.servicesStatus.filter(
+                          (svc) => svc.name === props.row.name
+                        )[0].runningTask === task.name
+                      "
+                      color="white"
+                      size="sm"
+                    />
                     <q-btn
+                      v-else
                       size="sm"
                       :color="task.color"
                       :icon="task.icon"
@@ -74,9 +95,19 @@
                       @click="runTask(task.name, props.row.name)"
                     />
                   </q-td>
-
-                  <q-td key="custom" :props="props"
-                    ><custom-action-button
+                  <q-td key="custom" :props="props">
+                    <q-spinner-hourglass
+                      v-if="
+                        servicesStore.getServiceByName(props.row.name)?.tasks!
+                        .map((task) => task.name)
+                        .includes(servicesStore.servicesStatus.filter(
+                            (svc) => svc.name === props.row.name
+                          )[0].runningTask)
+                      "
+                      color="white"
+                      size="sm" />
+                    <custom-action-button
+                      v-else
                       :disable-button-function="disableOnEmptySelection"
                       :disable-task-function="disableTaskBasedOnRunState"
                       :run-task-function="runTask"
@@ -155,6 +186,8 @@ import CpuUsageChart from "@/components/CpuUsageChart.vue";
 import MemoryUsageChart from "@/components/MemoryUsageChart.vue";
 import BranchChip from "@/components/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
+
+const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];
 
 const servicesStore = useServicesStore();
 const tasksStore = useTasksStore();

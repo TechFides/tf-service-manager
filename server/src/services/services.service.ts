@@ -28,6 +28,7 @@ export interface BaseService {
     memoryMegaBytes: number;
   };
   runningNpmScript: string;
+  runningTask: string;
   runningTasks: string[];
   port: number;
   defaultGitBranch?: string;
@@ -84,6 +85,7 @@ export class ServicesService {
     for (const service of configService.get<BaseServiceConfig[]>('services')) {
       const baseService: BaseService = service as BaseService;
       baseService.runningNpmScript = '';
+      baseService.runningTask = '';
       baseService.runStatus = ServiceRunStatus.STOPPED;
       baseService.monitorStats = {
         cpuPercent: 0,
@@ -154,6 +156,7 @@ export class ServicesService {
         runStatus: service.runStatus,
         cloned: this.serviceIsCloned(service),
         runningNpmScript: service.runningNpmScript,
+        runningTask: service.runningTask,
         runningTasks: service.runningTasks,
         currentGitBranch: service.currentGitBranch,
         currentGitBranchHasChanges: service.currentGitBranchHasChanges,
@@ -203,6 +206,10 @@ export class ServicesService {
 
   setServiceRunningNpmScript(service: string, npmScript: string): void {
     this.services.find((s) => s.name === service).runningNpmScript = npmScript;
+  }
+
+  setServiceRunningTask(service: string, task: string): void {
+    this.services.find((s) => s.name === service).runningTask = task;
   }
 
   setServiceRunStatus(service: string, status: ServiceRunStatus): void {
