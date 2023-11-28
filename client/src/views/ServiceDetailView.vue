@@ -68,9 +68,13 @@
             @click="runTask(task.name, route.params.name)"
           />
           <custom-action-button
-            :service="servicesStore.getServiceByName(route.params.name)"
-            btn-label="CUSTOM_TASK"
+            :disable-button-function="disableOnEmptySelection"
+            :disable-task-function="disableTaskBasedOnRunState"
+            btn-label="Custom action"
             btn-class="q-ma-xs"
+            :run-task-function="runTask"
+            :service-name="(route.params.name as string)"
+            :tasks="servicesStore.getServiceByName(route.params.name as string)?.tasks!"
           />
         </q-card-section>
       </q-card>
@@ -101,6 +105,7 @@ import { useServicesStore, type ServiceStatus } from "@/stores/services";
 import ConfirmDialog from "@/components/confirmDialog/ConfirmDialog.vue";
 import BranchChip from "@/components/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
+import type { Task } from "@/stores/tasks";
 
 const refConfirmDialog = ref(ConfirmDialog);
 const logsStore = useLogsStore();
@@ -128,6 +133,13 @@ const clearLogs = () => {
   const serviceName = route.params.name as string;
   console.log(`Clearing logs for service: ${serviceName}`);
   logsStore.clearLogs(serviceName);
+};
+
+const disableOnEmptySelection = (tasks: Task[]): boolean => {
+  return tasks.length === 0;
+};
+const disableTaskBasedOnRunState = (task: Task, service: string): boolean => {
+  return !tasksStore.runnableStatus[task.name][service];
 };
 
 /**
