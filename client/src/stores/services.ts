@@ -18,6 +18,7 @@ export interface ServiceStatus {
   cloned: boolean;
   runStatus: string;
   runningNpmScript: string;
+  runningTask: string;
   currentGitBranch: string;
   currentGitBranchHasChanges: boolean;
   currentGitBranchAhead: number;
