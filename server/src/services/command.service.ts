@@ -324,14 +324,14 @@ export class CommandService {
 
       process.stderr.on('data', (data) => {
         this.logData(data, (line) => {
-          console.log(`${prefix} ${line}`);
+          console.log(`[${service}]${prefix} ${line}`);
           this.eventsGateway.sendLogsToClient(line, service);
         });
       });
       process.stdout.on('data', (data) => {
         resultData += data.toString();
         this.logData(data, (line) => {
-          console.log(`${prefix} ${line}`);
+          console.log(`[${service}]${prefix} ${line}`);
           this.eventsGateway.sendLogsToClient(line, service);
         });
       });
