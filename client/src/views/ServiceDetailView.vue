@@ -70,8 +70,7 @@
           <custom-action-button
             :disable-button-function="disableOnEmptySelection"
             :disable-task-function="disableTaskBasedOnRunState"
-            btn-label="Custom
-          action"
+            btn-label="Custom action"
             btn-class="q-ma-xs"
             :run-task-function="runTask"
             :service-name="(route.params.name as string)"
