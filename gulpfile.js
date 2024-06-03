@@ -1,6 +1,7 @@
 /* eslint-env node */
 const { parallel} = require('gulp');
 const spawn = require('child_process').spawn;
+const access = require('fs/promises').access;
 const chalk = require('chalk');
 const stripAnsi = require('strip-ansi');
 function runProcess(command, prefix, color, cwd, shell) {
@@ -41,6 +42,19 @@ function runProcess(command, prefix, color, cwd, shell) {
     });
 }
 
+async function fileExists(path) {
+    try {
+        await access(path);
+        return true;
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            return false;
+        } else {
+            throw err;
+        }
+    }
+}
+
 async function runServiceManagerBackend() {
     const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     await runProcess(
@@ -53,8 +67,9 @@ async function runServiceManagerBackend() {
 
 async function runServiceManagerFrontend() {
     const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    const args = (await fileExists('/.dockerenv')) ? '--host 0.0.0.0' : '';
     await runProcess(
-        `${command} run dev`,
+        `${command} run dev -- ${args}`,
         '[CLIENT]',
         'blue',
         `./client`,
