@@ -18,6 +18,7 @@ export interface Service {
   tasks: Task[];
   vulnerabilities?: VulnerabilityCount;
   npmScripts?: string[];
+  gitUrl: string;
 }
 export interface ServiceStatus {
   name: string;
@@ -42,6 +43,7 @@ interface ServiceState {
   servicesStatus: ServiceStatus[];
   servicesMonitors: ServiceMonitor[];
   loadingVulnerabilities: boolean;
+  fixingVulnerabilities: boolean;
 }
 
 export const useServicesStore = defineStore({
@@ -52,6 +54,7 @@ export const useServicesStore = defineStore({
       servicesStatus: [],
       servicesMonitors: [],
       loadingVulnerabilities: false,
+      fixingVulnerabilities: false,
     } as ServiceState),
 
   getters: {
@@ -122,10 +125,31 @@ export const useServicesStore = defineStore({
       this.loadingVulnerabilities = false;
     },
 
-    async tryAutoFix(serviceName: string): Promise<void> {
-      const response = await axios.post(
+    /**
+     * Tries to automatically fix the given service.
+     *
+     * @param {string} serviceName - The name of the service to be fixed.
+     * @returns {Promise<void>} - A promise that resolves when the auto-fix process completes without any errors.
+     */
+    async tryAutoFixService(serviceName: string): Promise<void> {
+      await axios.post(
         SM_BACKEND_URL + `/services/${serviceName}/npm-audit-auto-fix`
       );
+    },
+
+    /**
+     * Tries to automatically fix all services.
+     *
+     * @returns {Promise<void>} A promise that resolves once all services have been attempted to be fixed.
+     */
+    async tryAutoFixAllServices(): Promise<void> {
+      this.fixingVulnerabilities = true;
+      for (const service of this.services) {
+        delete service.vulnerabilities;
+        await this.tryAutoFixService(service.name);
+        await this.getNpmAuditForService(service.name);
+      }
+      this.fixingVulnerabilities = false;
     },
 
     /**
@@ -134,14 +158,13 @@ export const useServicesStore = defineStore({
      * @return {Promise<void>} - A promise that resolves when the npm audit information has been retrieved.
      */
     async getNpmAuditForService(serviceName: string): Promise<void> {
-      const response = await axios.get(
-        SM_BACKEND_URL + `/services/${serviceName}/npm-audit`
-      );
-      const data = response.data as NpmAuditOutput;
-
       const service = this.services.find((s) => s.name === serviceName);
-
       if (service) {
+        delete service.vulnerabilities;
+        const response = await axios.get(
+          SM_BACKEND_URL + `/services/${serviceName}/npm-audit`
+        );
+        const data = response.data as NpmAuditOutput;
         service.vulnerabilities = data.metadata.vulnerabilities;
       }
     },

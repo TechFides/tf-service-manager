@@ -28,19 +28,20 @@
               color="red"
               label="Try auto fix"
               @click="tryAutoFix"
+              :loading="servicesStore.fixingVulnerabilities"
             />
           </template>
         </q-banner>
       </q-card-section>
       <q-card-section>
         <div class="row text-h6">
-          <div class="col">Service Name</div>
-          <div class="col">Branch</div>
-          <div class="col">Info</div>
-          <div class="col">Low</div>
-          <div class="col">Moderate</div>
-          <div class="col">High</div>
-          <div class="col">Critical</div>
+          <div class="col-1">Service Name</div>
+          <div class="col-2">Branch / Create MR</div>
+          <div class="col justify-center flex">Info</div>
+          <div class="col justify-center flex">Low</div>
+          <div class="col justify-center flex">Moderate</div>
+          <div class="col justify-center flex">High</div>
+          <div class="col justify-center flex">Critical</div>
         </div>
         <q-separator class="q-ma-sm" />
         <div
@@ -48,10 +49,10 @@
           v-for="service of servicesStore.services"
           v-bind:key="service.name"
         >
-          <div class="col">
+          <div class="col-1 items-center flex">
             {{ service.name }}
           </div>
-          <div class="col">
+          <div class="col-2 row items-center">
             <branch-chip
               :status="
                 servicesStore.servicesStatus.find(
@@ -59,36 +60,43 @@
                 )
               "
             />
+            <q-btn
+              size="xs"
+              class="q-pa-sm q-ma-xs"
+              color="primary"
+              icon="merge"
+              @click="createMergeRequest(service)"
+            />
           </div>
-          <div class="col">
+          <div class="col justify-center items-center flex">
             <npm-audit-chip
               severity="info"
               :loading="servicesStore.loadingVulnerabilities"
               :count="service.vulnerabilities?.info"
             />
           </div>
-          <div class="col">
+          <div class="col justify-center items-center flex">
             <npm-audit-chip
               severity="low"
               :loading="servicesStore.loadingVulnerabilities"
               :count="service.vulnerabilities?.low"
             />
           </div>
-          <div class="col">
+          <div class="col justify-center items-center flex">
             <npm-audit-chip
               severity="moderate"
               :loading="servicesStore.loadingVulnerabilities"
               :count="service.vulnerabilities?.moderate"
             />
           </div>
-          <div class="col">
+          <div class="col justify-center items-center flex">
             <npm-audit-chip
               severity="high"
               :loading="servicesStore.loadingVulnerabilities"
               :count="service.vulnerabilities?.high"
             />
           </div>
-          <div class="col">
+          <div class="col justify-center items-center flex">
             <npm-audit-chip
               severity="critical"
               :loading="servicesStore.loadingVulnerabilities"
@@ -102,7 +110,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useServicesStore } from "@/stores/services";
+import { type Service, useServicesStore } from "@/stores/services";
 import ServiceRunStatus from "@/components/ServiceRunStatus.vue";
 import NpmAuditChip from "@/components/NpmAuditChip.vue";
 import BranchChip from "@/components/BranchChip.vue";
@@ -114,7 +122,17 @@ const refreshAudit = () => {
 };
 
 const tryAutoFix = async () => {
-  await servicesStore.tryAutoFix("TF_ADM");
-  servicesStore.getNpmAuditForService("TF_ADM");
+  await servicesStore.tryAutoFixAllServices();
+};
+
+const createMergeRequest = (service: Service) => {
+  window.open(
+    `https://${
+      service.gitUrl
+    }/-/merge_requests/new?merge_request[source_branch]=${
+      servicesStore.getServiceStatus(service.name)?.currentGitBranch
+    }`,
+    "_blank"
+  );
 };
 </script>

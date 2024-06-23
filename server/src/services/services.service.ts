@@ -124,6 +124,7 @@ export class ServicesService {
         pipelineBadge: `https://${service.gitUrl}/badges/develop/pipeline.svg`,
         coverageBadge: `https://${service.gitUrl}/badges/develop/coverage.svg`,
         npmScripts: await this.getServiceNpmScripts(service.name),
+        gitUrl: service.gitUrl,
         tasks: tasks,
       });
     }
