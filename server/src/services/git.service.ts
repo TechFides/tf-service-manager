@@ -71,9 +71,7 @@ export class GitService {
     const command = `git push ${
       upstream ? '--set-upstream ' + upstream : ''
     } ${branchName}`;
-    console.log('----------------------');
-    console.log(command);
-    console.log('----------------------');
+
     await this.commandService.runCommandWithLog(
       command,
       serviceName,
