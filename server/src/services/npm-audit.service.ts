@@ -44,7 +44,7 @@ export class NpmAuditService {
       serviceName,
       'npm audit autofix by tf-service-manager',
     );
-    //await this.gitService.push(serviceName, branchName, 'origin');
+    await this.gitService.push(serviceName, branchName, 'origin');
 
     return 'OK';
   }
