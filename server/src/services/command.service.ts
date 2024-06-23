@@ -11,6 +11,7 @@ import { TaskDto } from '../dto/service.dto';
 import { BranchTaskDto } from 'src/dto/branch-task.dto';
 import { runCommand } from 'src/utils/process';
 import { ConfigService } from '@nestjs/config';
+import { GitService } from './git.service';
 
 export enum DefaultTask {
   GIT_CLONE = 'GIT_CLONE',
@@ -112,6 +113,7 @@ export class CommandService {
   constructor(
     private readonly eventsGateway: EventsGateway,
     private readonly servicesService: ServicesService,
+    private readonly gitService: GitService,
     configService: ConfigService,
   ) {
     this.npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -147,20 +149,20 @@ export class CommandService {
 
   runTask(
     task: string,
-    service: string,
+    serviceName: string,
     attributes: { [key: string]: string },
   ): string {
     let command = '';
-    let cwd = this.servicesService.getServicePath(service);
+    let cwd = this.servicesService.getServicePath(serviceName);
     const shell = process.platform === 'win32' ? 'powershell.exe' : undefined;
 
-    const serviceFolder = service.toLowerCase().split('_').join('-');
+    const serviceFolder = serviceName.toLowerCase().split('_').join('-');
     const serviceObject = this.servicesService
       .getServices()
-      .find((s) => s.name === service);
-    this.servicesService.addRunningTask(service, task);
+      .find((s) => s.name === serviceName);
+    this.servicesService.addRunningTask(serviceName, task);
 
-    this.servicesService.setServiceRunningTask(service, task);
+    this.servicesService.setServiceRunningTask(serviceName, task);
     this.eventsGateway.sendStatusUpdateToClient();
 
     switch (task) {
@@ -169,8 +171,8 @@ export class CommandService {
        *******************************************************/
       case DefaultTask.NPM_INSTALL:
         command = `${this.npmCommand} i`;
-        this.runProcess(task, command, '', service, cwd).then(() => {
-          this.servicesService.setServiceRunningTask(service, '');
+        this.runProcess(task, command, '', serviceName, cwd).then(() => {
+          this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
         });
         break;
@@ -178,15 +180,15 @@ export class CommandService {
        * START_SERVICE
        *******************************************************/
       case DefaultTask.START_SERVICE:
-        this.servicesService.setServiceRunningTask(service, task);
+        this.servicesService.setServiceRunningTask(serviceName, task);
         command = `${this.npmCommand} run ${serviceObject.npmRunLifecycle}`;
         this.servicesService.setServiceRunStatus(
-          service,
+          serviceName,
           ServiceRunStatus.PENDING,
         );
-        this.runProcess(task, command, '', service, cwd);
-        this.servicesService.waitOnService(service).then(() => {
-          this.servicesService.setServiceRunningTask(service, '');
+        this.runProcess(task, command, '', serviceName, cwd);
+        this.servicesService.waitOnService(serviceName).then(() => {
+          this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
         });
         break;
@@ -195,10 +197,10 @@ export class CommandService {
        *******************************************************/
       case DefaultTask.STOP_SERVICE:
         this.servicesService.setServiceRunStatus(
-          service,
+          serviceName,
           ServiceRunStatus.STOPPED,
         );
-        this.killProcess(service);
+        this.killProcess(serviceName);
         break;
       /**
        * GIT_CLONE
@@ -206,7 +208,7 @@ export class CommandService {
       case DefaultTask.GIT_CLONE:
         const serviceToClone = this.servicesService
           .getServices()
-          .find((s) => s.name === service);
+          .find((s) => s.name === serviceName);
         let repoUrl: string;
         if (attributes.gitCheckoutType === 'ssh') {
           repoUrl = `git@${serviceToClone.gitUrl.replace(
@@ -226,8 +228,8 @@ export class CommandService {
         if (!ensureDirectory(this.servicesDirectory)) {
           break;
         }
-        this.runProcess(task, command, '', service, cwd).then(() => {
-          this.servicesService.setServiceRunningTask(service, '');
+        this.runProcess(task, command, '', serviceName, cwd).then(() => {
+          this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
         });
         break;
@@ -235,7 +237,7 @@ export class CommandService {
        * SWITCH BRANCH
        *******************************************************/
       case DefaultTask.GIT_CHECKOUT:
-        this.gitCheckout(service, attributes.branch, cwd);
+        this.gitService.checkout(serviceName, attributes.branch);
         break;
       /**
        * REMOVE_SERVICE
@@ -246,13 +248,13 @@ export class CommandService {
         if (!ensureDirectory(this.servicesDirectory)) {
           break;
         }
-        this.runProcess(task, command, '', service, cwd, shell, () => {
+        this.runProcess(task, command, '', serviceName, cwd, shell, () => {
           const serviceToUpdate = this.servicesService
             .getServices()
-            .find((s) => s.name === service);
+            .find((s) => s.name === serviceName);
           this.servicesService.resetServiceBranchStatus(serviceToUpdate);
         }).then(() => {
-          this.servicesService.setServiceRunningTask(service, '');
+          this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
         });
         break;
@@ -260,13 +262,13 @@ export class CommandService {
        * GIT_PULL
        *******************************************************/
       case DefaultTask.GIT_PULL:
-        this.gitPull(service, cwd);
+        this.gitService.pull(serviceName);
         break;
       /**
        * GIT_RESET
        *******************************************************/
       case DefaultTask.GIT_RESET:
-        this.gitReset(service, cwd);
+        this.gitService.reset(serviceName);
         break;
       default:
         const requestedTask = serviceObject.tasks.find((t) => t.name === task);
@@ -279,8 +281,8 @@ export class CommandService {
           this.performTask(serviceObject, requestedTask);
         } else {
           // we've added task before switch
-          this.servicesService.removeRunningTask(service, task);
-          this.servicesService.setServiceRunningTask(service, '');
+          this.servicesService.removeRunningTask(serviceName, task);
+          this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
           throw new Error(`Unknown task type: ${task}`);
         }
@@ -356,124 +358,13 @@ export class CommandService {
       });
       process.on('exit', () => {
         callback();
-        this.logCommandFinnished(command, service);
+        this.logCommandFinished(command, service);
         this.servicesService.setServiceProcess(service, null);
         this.servicesService.removeRunningTask(service, taskName);
         this.eventsGateway.sendStatusUpdateToClient();
         resolve(resultData);
       });
     });
-  }
-
-  async gitPull(serviceName: string, cwd: string) {
-    try {
-      const service = this.servicesService
-        .getServices()
-        .find((s) => s.name === serviceName);
-      if (service) {
-        await this.runCommandWithLog(`git pull --ff-only`, serviceName, cwd);
-
-        const change = await this.updateServiceStatus(service, cwd);
-        if (change) {
-          this.servicesService.setServiceRunningTask(service.name, '');
-          this.eventsGateway.sendStatusUpdateToClient();
-        }
-      }
-    } catch (error) {
-      this.logError(serviceName, error);
-    }
-    this.servicesService.removeRunningTask(serviceName, DefaultTask.GIT_PULL);
-    this.servicesService.setServiceRunningTask(serviceName, '');
-    this.eventsGateway.sendStatusUpdateToClient();
-  }
-
-  async gitReset(serviceName: string, cwd: string) {
-    try {
-      const service = this.servicesService
-        .getServices()
-        .find((s) => s.name === serviceName);
-      if (!service || !this.servicesService.serviceHasBranch(service)) {
-        return;
-      }
-
-      const remoteBranch = await this.runCommandWithLog(
-        `git for-each-ref --format='%(upstream:short)' "$(git symbolic-ref -q HEAD)"`,
-        serviceName,
-        cwd,
-      );
-      if (!remoteBranch || !this.servicesService.serviceHasBranch(service)) {
-        this.servicesService.removeRunningTask(
-          serviceName,
-          DefaultTask.GIT_RESET,
-        );
-        this.servicesService.setServiceRunningTask(service.name, '');
-        this.eventsGateway.sendStatusUpdateToClient();
-        return;
-      }
-
-      await this.runCommandWithLog(
-        `git reset --hard ${remoteBranch}`,
-        serviceName,
-        cwd,
-      );
-      if (!this.servicesService.serviceHasBranch(service)) {
-        this.servicesService.removeRunningTask(
-          serviceName,
-          DefaultTask.GIT_RESET,
-        );
-        this.servicesService.setServiceRunningTask(service.name, '');
-        this.eventsGateway.sendStatusUpdateToClient();
-        return;
-      }
-
-      const change = await this.updateServiceStatus(service, cwd);
-      if (change) {
-        this.eventsGateway.sendStatusUpdateToClient();
-      }
-    } catch (error) {
-      this.logError(serviceName, error);
-    }
-    this.servicesService.setServiceRunningTask(serviceName, '');
-    this.servicesService.removeRunningTask(serviceName, DefaultTask.GIT_RESET);
-    this.eventsGateway.sendStatusUpdateToClient();
-  }
-
-  async gitCheckout(
-    serviceName: string,
-    branch: string | undefined,
-    cwd: string,
-  ) {
-    const service = this.servicesService
-      .getServices()
-      .find((s) => s.name === serviceName);
-    if (!service || !this.servicesService.serviceHasBranch(service)) {
-      return;
-    }
-    if (branch === undefined) {
-      if (!service.defaultGitBranch) {
-        console.log(
-          'GIT_CHECKOUT: no branch provided and no defaultBranch configured, not running',
-        );
-        this.servicesService.removeRunningTask(
-          serviceName,
-          DefaultTask.GIT_CHECKOUT,
-        );
-        this.servicesService.setServiceRunningTask(service.name, '');
-        this.eventsGateway.sendStatusUpdateToClient();
-        return;
-      }
-      branch = service.defaultGitBranch;
-    }
-    const command = `git checkout ${branch}`;
-    await this.runCommandWithLog(command, serviceName, cwd, true);
-    await this.updateServiceStatus(service, cwd);
-    await this.gitReset(serviceName, cwd);
-    this.servicesService.removeRunningTask(
-      serviceName,
-      DefaultTask.GIT_CHECKOUT,
-    );
-    this.servicesService.setServiceRunningTask(service.name, '');
-    this.eventsGateway.sendStatusUpdateToClient();
   }
 
   async updateServiceStatus(
@@ -539,7 +430,7 @@ export class CommandService {
     return isNaN(result) ? 0 : result;
   }
 
-  private async runCommandWithLog(
+  public async runCommandWithLog(
     command: string,
     service: string,
     cwd: string,
@@ -552,24 +443,13 @@ export class CommandService {
     const result = await runCommand(command, cwd);
 
     if (withLogging) {
-      this.logCommandFinnished(command, service);
+      this.logCommandFinished(command, service);
     }
 
     return result;
   }
 
-  private logError(serviceName: string, error) {
-    console.error(error);
-    const data =
-      typeof error?.toString === 'function' ? error.toString() : undefined;
-    if (data) {
-      this.logData(data, (line) => {
-        this.eventsGateway.sendLogsToClient(line, serviceName);
-      });
-    }
-  }
-
-  private logData(data: string, callback: (line: string) => void) {
+  public logData(data: string, callback: (line: string) => void) {
     data
       .toString()
       .split('\n')
@@ -586,7 +466,7 @@ export class CommandService {
     );
   }
 
-  private logCommandFinnished(command: string, service: string) {
+  private logCommandFinished(command: string, service: string) {
     this.eventsGateway.sendLogsToClient(
       `Command finished: "${command}"`,
       service,

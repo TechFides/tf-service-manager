@@ -20,6 +20,11 @@ const router = createRouter({
       component: () => import("../views/AllLogsView.vue"),
     },
     {
+      path: "/npm-audit",
+      name: "npm-audit",
+      component: () => import("../views/NpmAuditView.vue"),
+    },
+    {
       path: "/settings",
       name: "settings",
       component: () => import("../views/SettingsView.vue"),

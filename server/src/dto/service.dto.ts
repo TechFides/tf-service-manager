@@ -7,6 +7,7 @@ export class ServiceDto {
   coverageBadge: string;
   pipelineBadge: string;
   npmScripts: string[];
+  gitUrl: string;
   tasks: TaskDto[];
 }
 

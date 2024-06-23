@@ -46,6 +46,24 @@
             >
           </q-item-section>
         </q-item>
+
+        <q-item
+          clickable
+          v-ripple
+          active-class="bg-grey-9 text-white"
+          :active="route.name === 'npm-audit'"
+          @click="navigateTo('/npm-audit')"
+        >
+          <q-item-section avatar>
+            <q-icon color="blue-7" size="md" name="lock" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-weight-bolder text-capitalize"
+              >Npm audit</q-item-label
+            >
+          </q-item-section>
+        </q-item>
+
         <q-item
           clickable
           v-ripple
