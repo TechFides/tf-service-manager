@@ -2,6 +2,10 @@ import { defineStore } from "pinia";
 import axios from "axios";
 import { SM_BACKEND_URL } from "@/config";
 import type { Task } from "./tasks";
+import type {
+  NpmAuditOutput,
+  VulnerabilityCount,
+} from "@/stores/npm-audit-result";
 
 export const MAX_MONITOR_HISTORY = 60;
 
@@ -12,6 +16,8 @@ export interface Service {
   coverageBadge: string;
   pipelineBadge: string;
   tasks: Task[];
+  vulnerabilities?: VulnerabilityCount;
+  npmScripts?: string[];
 }
 export interface ServiceStatus {
   name: string;
@@ -35,6 +41,7 @@ interface ServiceState {
   services: Service[];
   servicesStatus: ServiceStatus[];
   servicesMonitors: ServiceMonitor[];
+  loadingVulnerabilities: boolean;
 }
 
 export const useServicesStore = defineStore({
@@ -44,6 +51,7 @@ export const useServicesStore = defineStore({
       services: [],
       servicesStatus: [],
       servicesMonitors: [],
+      loadingVulnerabilities: false,
     } as ServiceState),
 
   getters: {
@@ -64,7 +72,12 @@ export const useServicesStore = defineStore({
     },
   },
   actions: {
-    async getAllServices() {
+    /**
+     * Fetches all services from the backend and stores them in memory.
+     *
+     * @returns {Promise<void>} A Promise that resolves once the services are fetched and stored.
+     */
+    async getAllServices(): Promise<void> {
       const response = await axios.get(SM_BACKEND_URL + "/services");
       const services = response.data.services as Service[];
       this.services = services.map((service) => {
@@ -81,9 +94,56 @@ export const useServicesStore = defineStore({
         };
       });
     },
-    async getAllServicesStatus() {
+
+    /**
+     * Gets the status of all services.
+     *
+     * @returns {Promise<void>} A Promise that resolves when the status of all services is retrieved.
+     */
+    async getAllServicesStatus(): Promise<void> {
       const response = await axios.get(SM_BACKEND_URL + "/services-status");
       this.servicesStatus = response.data.services;
+    },
+
+    /**
+     * Get Npm audit for all services.
+     *
+     * @returns {Promise<void>} - A Promise that resolves when the Npm audit for all services is complete.
+     */
+    async getNpmAuditForAllServices(): Promise<void> {
+      this.loadingVulnerabilities = true;
+      for (const service of this.services) {
+        delete service.vulnerabilities;
+      }
+      for (const service of this.services) {
+        await this.getNpmAuditForService(service.name);
+      }
+
+      this.loadingVulnerabilities = false;
+    },
+
+    async tryAutoFix(serviceName: string): Promise<void> {
+      const response = await axios.post(
+        SM_BACKEND_URL + `/services/${serviceName}/npm-audit-auto-fix`
+      );
+    },
+
+    /**
+     * Retrieves the npm audit information for a given service.
+     * @param {string} serviceName - The name of the service.
+     * @return {Promise<void>} - A promise that resolves when the npm audit information has been retrieved.
+     */
+    async getNpmAuditForService(serviceName: string): Promise<void> {
+      const response = await axios.get(
+        SM_BACKEND_URL + `/services/${serviceName}/npm-audit`
+      );
+      const data = response.data as NpmAuditOutput;
+
+      const service = this.services.find((s) => s.name === serviceName);
+
+      if (service) {
+        service.vulnerabilities = data.metadata.vulnerabilities;
+      }
     },
 
     addServiceMonitorData(

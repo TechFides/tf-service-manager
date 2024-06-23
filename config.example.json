@@ -1,5 +1,5 @@
-  {
-  "services_directory": "../../../tfpl-services2",
+{
+  "services_directory": "../tfpl-services2",
   "services": [
     {
       "name": "TF_ADM",

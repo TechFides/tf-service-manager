@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { RunCommandDto } from './dto/run-command.dto';
 import { ServicesDto } from './dto/service.dto';
@@ -9,6 +9,7 @@ import { ServicesStatusDto } from './dto/service-status.dto';
 import { ServicesService } from './services/services.service';
 import { RunNpmScriptDto } from './dto/run-npm-script.dto';
 import { BranchTasksDto } from './dto/branch-task.dto';
+import { NpmAuditService } from './services/npm-audit.service';
 
 @Controller()
 export class AppController {
@@ -16,6 +17,7 @@ export class AppController {
     private readonly appService: AppService,
     private readonly servicesService: ServicesService,
     private readonly commandService: CommandService,
+    private readonly npmAuditService: NpmAuditService,
   ) {}
 
   @Get()
@@ -29,6 +31,25 @@ export class AppController {
     serviceDto.services = await this.servicesService.getServicesDto();
     return serviceDto;
   }
+
+  @Get('/services/:serviceName/npm-audit')
+  async getNpmAuditForService(
+    @Param('serviceName') serviceName: string,
+  ): Promise<string> {
+    const result = await this.npmAuditService.getNpmAuditForService(
+      serviceName,
+    );
+    return JSON.parse(result);
+  }
+
+  @Post('/services/:serviceName/npm-audit-auto-fix')
+  async getNpmAuditAutFixForService(
+    @Param('serviceName') serviceName: string,
+  ): Promise<string> {
+    const result = await this.npmAuditService.npmAuditAutoFix(serviceName);
+    return 'Ok';
+  }
+
   @Get('/services-status')
   getAllServicesStatus(): ServicesStatusDto {
     const servicesStatusDto = new ServicesStatusDto();

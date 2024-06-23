@@ -8,6 +8,8 @@ import { MonitorService } from './services/monitor.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
+import { NpmAuditService } from './services/npm-audit.service';
+import { GitService } from './services/git.service';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import configuration from './config/configuration';
     CommandService,
     ServicesService,
     MonitorService,
+    NpmAuditService,
+    GitService,
   ],
 })
 export class AppModule {}
