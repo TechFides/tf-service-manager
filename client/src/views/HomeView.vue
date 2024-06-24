@@ -29,6 +29,8 @@
                       @update:model-value="
                         (value, _) => updateCustomTasksForSelected(value)
                       "
+                      checked-icon="check"
+                      unchecked-icon="clear"
                     />
                     <a
                       :href="servicesStore.getServiceAppUrl(props.row.name)"
@@ -46,8 +48,8 @@
                       v-if="
                         gitTasks.includes(
                           servicesStore.servicesStatus.filter(
-                            (svc) => svc.name === props.row.name
-                          )[0].runningTask
+                            (svc) => svc.name === props.row.name,
+                          )[0].runningTask,
                         )
                       "
                       color="white"
@@ -78,7 +80,7 @@
                     <q-spinner-hourglass
                       v-if="
                         servicesStore.servicesStatus.filter(
-                          (svc) => svc.name === props.row.name
+                          (svc) => svc.name === props.row.name,
                         )[0].runningTask === task.name
                       "
                       color="white"
@@ -98,11 +100,14 @@
                   <q-td key="custom" :props="props">
                     <q-spinner-hourglass
                       v-if="
-                        servicesStore.getServiceByName(props.row.name)?.tasks!
-                        .map((task) => task.name)
-                        .includes(servicesStore.servicesStatus.filter(
-                            (svc) => svc.name === props.row.name
-                          )[0].runningTask)
+                        servicesStore
+                          .getServiceByName(props.row.name)
+                          ?.tasks!.map((task) => task.name)
+                          .includes(
+                            servicesStore.servicesStatus.filter(
+                              (svc) => svc.name === props.row.name,
+                            )[0].runningTask,
+                          )
                       "
                       color="white"
                       size="sm" />
@@ -112,7 +117,9 @@
                       :disable-task-function="disableTaskBasedOnRunState"
                       :run-task-function="runTask"
                       :service-name="props.row.name"
-                      :tasks="servicesStore.getServiceByName(props.row.name)?.tasks!"
+                      :tasks="
+                        servicesStore.getServiceByName(props.row.name)?.tasks!
+                      "
                   /></q-td>
                 </q-tr>
               </template>
@@ -182,9 +189,9 @@ import type { Task } from "@/stores/tasks";
 import { computed, ref, type Ref } from "vue";
 import ServiceRunStatus from "@/components/ServiceRunStatus.vue";
 import PipelineStatus from "@/components/PipelineStatus.vue";
-import CpuUsageChart from "@/components/CpuUsageChart.vue";
-import MemoryUsageChart from "@/components/MemoryUsageChart.vue";
-import BranchChip from "@/components/BranchChip.vue";
+import CpuUsageChart from "@/components/charts/CpuUsageChart.vue";
+import MemoryUsageChart from "@/components/charts/MemoryUsageChart.vue";
+import BranchChip from "@/components/chips/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
 
 const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];
@@ -270,7 +277,7 @@ const updateCustomTasksForSelected = (enabled_services: string[]): void => {
         started = true;
       } else {
         taskIntersection = taskIntersection.filter((intersectTask) =>
-          service.tasks.some((task) => task.name == intersectTask.name)
+          service.tasks.some((task) => task.name == intersectTask.name),
         );
       }
     }
