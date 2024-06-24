@@ -40,7 +40,7 @@
             ><q-icon name="info" size="15px"
           /></q-chip>
           {{}}
-          <span v-html="convert.toHtml(item.line)" />
+          <span v-html="ansiHtml(item.line)" />
         </div>
       </q-virtual-scroll>
     </div>
@@ -58,8 +58,7 @@ import type { Log } from "@/stores/logs";
 import { ref, watch } from "vue";
 import type { QVirtualScroll } from "quasar";
 
-import * as Convert from "ansi-to-html";
-const convert = new Convert();
+import ansiHtml from "ansi-html";
 
 const props = defineProps<{
   logs: Log[];
@@ -75,7 +74,7 @@ watch(
     if (autoScroll.value) {
       virtualListRef.value.scrollTo(props.logs.length);
     }
-  }
+  },
 );
 </script>
 
