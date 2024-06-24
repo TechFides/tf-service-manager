@@ -2,6 +2,8 @@
 * https://techfides.cz
 * https://team.techfides.cz/
 * https://techfides.eu
+---
+![Service Manager, Home page](./images/sm-home.png)
 
 # TF Service Manager
 
