@@ -1,5 +1,6 @@
 {
   "services_directory": "../../../services",
+  "services_directory_comment": "Relative paths are resolved from server 'dist' folder",
   "services": [
     {
       "name": "SERVICE_1",

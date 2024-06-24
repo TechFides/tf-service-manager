@@ -25,10 +25,13 @@ Service manager for node and local development, suited for microservices archite
   * reset changes
   * create merge request (gitlab only)
 
-# How to use
-1. `npm i`
-2. `npm start`
-3. open http://localhost:5173/
+# Quick start
+1. clone this repo
+2. run `npm i`
+3. run `cp ./server/.env.example ./server/.env`
+4. edit file `./server/config.example.json`
+5. `npm start`
+6. open http://localhost:5173/
 
 # Configuration
 
