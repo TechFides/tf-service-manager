@@ -1,7 +1,7 @@
 {
   "name": "tf-service-manager",
   "version": "1.0.0",
-  "description": "Work in progress :)",
+  "description": "Service manager for node and local development, suited for microservices architecture",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
