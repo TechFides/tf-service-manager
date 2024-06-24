@@ -182,9 +182,9 @@ import type { Task } from "@/stores/tasks";
 import { computed, ref, type Ref } from "vue";
 import ServiceRunStatus from "@/components/ServiceRunStatus.vue";
 import PipelineStatus from "@/components/PipelineStatus.vue";
-import CpuUsageChart from "@/components/CpuUsageChart.vue";
-import MemoryUsageChart from "@/components/MemoryUsageChart.vue";
-import BranchChip from "@/components/BranchChip.vue";
+import CpuUsageChart from "@/components/charts/CpuUsageChart.vue";
+import MemoryUsageChart from "@/components/charts/MemoryUsageChart.vue";
+import BranchChip from "@/components/chips/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
 
 const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];

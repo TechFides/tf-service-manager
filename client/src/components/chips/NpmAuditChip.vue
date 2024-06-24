@@ -6,7 +6,7 @@
     text-color="white"
   >
     <div v-if="loading && count == undefined">
-      <q-spinner color="white" />
+      <q-spinner-hourglass color="white" size="sm" />
     </div>
     <div v-else-if="count == undefined">?</div>
     <div v-else>

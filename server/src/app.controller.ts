@@ -47,7 +47,7 @@ export class AppController {
     @Param('serviceName') serviceName: string,
   ): Promise<string> {
     const result = await this.npmAuditService.npmAuditAutoFix(serviceName);
-    return 'Ok';
+    return JSON.parse(result);
   }
 
   @Get('/services-status')

@@ -39,7 +39,16 @@ export class EventsGateway {
     }, 1000);
   }
 
-  sendLogsToClient(line: string, service: string, info = false) {
+  /**
+   * Sends logs to the client.
+   *
+   * @param {string} line - The log message.
+   * @param {string} service - The name of the service.
+   * @param {boolean} [info=false] - Indicates if the log contains additional info.
+   *
+   * @return {void}
+   */
+  sendLogsToClient(line: string, service: string, info = false): void {
     const baseService = this.servicesService
       .getServices()
       .find((s) => s.name === service);

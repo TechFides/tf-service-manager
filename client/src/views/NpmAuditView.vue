@@ -4,11 +4,11 @@
       ><q-card-section class="text-h4">Npm audit</q-card-section>
 
       <q-separator />
-      <q-card-section>
+      <q-card-section class="flex justify-end">
         <q-btn
           color="primary"
           icon="refresh"
-          label="Refresh"
+          label="Scan all services"
           @click="refreshAudit"
           :loading="servicesStore.loadingVulnerabilities"
         />
@@ -23,6 +23,12 @@
           <li>Creates commit</li>
           <li>Calls "git push"</li>
           <template v-slot:action>
+            <q-toggle v-model="useForce" label="use --force" />
+            <q-toggle
+              v-model="pushToOrigin"
+              label="Push to origin"
+              class="q-mr-md q-ml-md"
+            />
             <q-btn
               icon="warning"
               color="red"
@@ -33,77 +39,81 @@
           </template>
         </q-banner>
       </q-card-section>
+
       <q-card-section>
-        <div class="row text-h6">
-          <div class="col-1">Service Name</div>
-          <div class="col-2">Branch / Create MR</div>
-          <div class="col justify-center flex">Info</div>
-          <div class="col justify-center flex">Low</div>
-          <div class="col justify-center flex">Moderate</div>
-          <div class="col justify-center flex">High</div>
-          <div class="col justify-center flex">Critical</div>
-        </div>
-        <q-separator class="q-ma-sm" />
-        <div
-          class="row"
-          v-for="service of servicesStore.services"
-          v-bind:key="service.name"
+        <q-table
+          hide-pagination
+          :rows="servicesStore.services"
+          :columns="columns"
+          :rows-per-page-options="[0]"
+          row-key="name"
+          flat
         >
-          <div class="col-1 items-center flex">
-            {{ service.name }}
-          </div>
-          <div class="col-2 row items-center">
-            <branch-chip
-              :status="
-                servicesStore.servicesStatus.find(
-                  (s) => s.name === service.name
-                )
-              "
-            />
-            <q-btn
-              size="xs"
-              class="q-pa-sm q-ma-xs"
-              color="primary"
-              icon="merge"
-              @click="createMergeRequest(service)"
-            />
-          </div>
-          <div class="col justify-center items-center flex">
-            <npm-audit-chip
-              severity="info"
-              :loading="servicesStore.loadingVulnerabilities"
-              :count="service.vulnerabilities?.info"
-            />
-          </div>
-          <div class="col justify-center items-center flex">
-            <npm-audit-chip
-              severity="low"
-              :loading="servicesStore.loadingVulnerabilities"
-              :count="service.vulnerabilities?.low"
-            />
-          </div>
-          <div class="col justify-center items-center flex">
-            <npm-audit-chip
-              severity="moderate"
-              :loading="servicesStore.loadingVulnerabilities"
-              :count="service.vulnerabilities?.moderate"
-            />
-          </div>
-          <div class="col justify-center items-center flex">
-            <npm-audit-chip
-              severity="high"
-              :loading="servicesStore.loadingVulnerabilities"
-              :count="service.vulnerabilities?.high"
-            />
-          </div>
-          <div class="col justify-center items-center flex">
-            <npm-audit-chip
-              severity="critical"
-              :loading="servicesStore.loadingVulnerabilities"
-              :count="service.vulnerabilities?.critical"
-            />
-          </div>
-        </div>
+          <template v-slot:body="props">
+            <q-tr :props="props">
+              <q-td key="name" :props="props">
+                <a
+                  :href="servicesStore.getServiceAppUrl(props.row.name)"
+                  target="_blank"
+                  class="service-link text-blue-5"
+                >
+                  <q-icon name="launch" size="20px" class="q-mr-sm" />{{
+                    props.row.name
+                  }}</a
+                >
+              </q-td>
+
+              <q-td key="branch" :props="props" class="">
+                <branch-chip
+                  :status="
+                    servicesStore.servicesStatus.find(
+                      (s) => s.name === props.row.name
+                    )
+                  "
+                />
+              </q-td>
+              <q-td>
+                <q-btn
+                  size="xs"
+                  class="q-pa-sm q-ma-xs"
+                  color="primary"
+                  icon="merge"
+                  @click="createMergeRequest(props.row)"
+                />
+              </q-td>
+              <q-td class="text-center">
+                <npm-audit-chip
+                  severity="info"
+                  :loading="servicesStore.loadingVulnerabilities"
+                  :count="props.row.vulnerabilities?.info"
+              /></q-td>
+              <q-td class="text-center">
+                <npm-audit-chip
+                  severity="low"
+                  :loading="servicesStore.loadingVulnerabilities"
+                  :count="props.row.vulnerabilities?.low"
+              /></q-td>
+              <q-td class="text-center">
+                <npm-audit-chip
+                  severity="moderate"
+                  :loading="servicesStore.loadingVulnerabilities"
+                  :count="props.row.vulnerabilities?.moderate"
+              /></q-td>
+              <q-td class="text-center">
+                <npm-audit-chip
+                  severity="high"
+                  :loading="servicesStore.loadingVulnerabilities"
+                  :count="props.row.vulnerabilities?.high"
+              /></q-td>
+              <q-td class="text-center">
+                <npm-audit-chip
+                  severity="high"
+                  :loading="servicesStore.loadingVulnerabilities"
+                  :count="props.row.vulnerabilities?.critical"
+              /></q-td>
+            </q-tr>
+          </template>
+        </q-table>
       </q-card-section>
     </q-card>
   </q-page>
@@ -111,9 +121,61 @@
 
 <script lang="ts" setup>
 import { type Service, useServicesStore } from "@/stores/services";
-import ServiceRunStatus from "@/components/ServiceRunStatus.vue";
-import NpmAuditChip from "@/components/NpmAuditChip.vue";
-import BranchChip from "@/components/BranchChip.vue";
+import NpmAuditChip from "@/components/chips/NpmAuditChip.vue";
+import BranchChip from "@/components/chips/BranchChip.vue";
+import type { QTableProps } from "quasar";
+import { ref } from "vue";
+
+const columns: QTableProps["columns"] = [
+  {
+    name: "name",
+    label: "Name",
+    align: "left",
+    field: (row) => row.name,
+  },
+  {
+    name: "branch",
+    label: "Git branch",
+    align: "left",
+    field: (row) => row.currentGitBranch,
+  },
+  {
+    name: "mergeRequest",
+    label: "Create MR",
+    align: "left",
+    field: (row) => row.currentGitBranch,
+  },
+  {
+    name: "Info",
+    label: "Info",
+    align: "center",
+    field: (row) => row.vulnerabilities.info,
+  },
+  {
+    name: "Low",
+    label: "Low",
+    align: "center",
+    field: (row) => row.vulnerabilities.low,
+  },
+  {
+    name: "Moderate",
+    label: "Moderate",
+    align: "center",
+    field: (row) => row.vulnerabilities.moderate,
+  },
+  {
+    name: "High",
+    label: "High",
+    align: "center",
+    field: (row) => row.vulnerabilities.high,
+  },
+  {
+    name: "Critical",
+    label: "Critical",
+    align: "center",
+    field: (row) => row.vulnerabilities.critical,
+  },
+];
 
 const servicesStore = useServicesStore();
 
@@ -124,6 +186,9 @@ const refreshAudit = () => {
 const tryAutoFix = async () => {
   await servicesStore.tryAutoFixAllServices();
 };
+
+const pushToOrigin = ref(false);
+const useForce = ref(false);
 
 const createMergeRequest = (service: Service) => {
   window.open(

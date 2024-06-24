@@ -103,7 +103,7 @@ import LogsExplorer from "@/components/LogsExplorer.vue";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useServicesStore, type ServiceStatus } from "@/stores/services";
 import ConfirmDialog from "@/components/confirmDialog/ConfirmDialog.vue";
-import BranchChip from "@/components/BranchChip.vue";
+import BranchChip from "@/components/chips/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
 import type { Task } from "@/stores/tasks";
 
