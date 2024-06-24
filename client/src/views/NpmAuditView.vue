@@ -17,24 +17,21 @@
         <q-banner class="bg-grey-9 text-white">
           <div class="text-h6">Try to autofix</div>
           <div>How autofix works?</div>
-          <li>Creates branch with name: "npm-audit-auto-fix-${new Date()}"</li>
+          <li>Creates new branch</li>
           <li>Checkouts created branch</li>
           <li>Calls "npm audit fix"</li>
           <li>Creates commit</li>
           <li>Calls "git push"</li>
           <template v-slot:action>
-            <q-toggle v-model="useForce" label="use --force" />
-            <q-toggle
-              v-model="pushToOrigin"
-              label="Push to origin"
-              class="q-mr-md q-ml-md"
-            />
             <q-btn
               icon="warning"
               color="red"
               label="Try auto fix"
               @click="tryAutoFix"
-              :loading="servicesStore.fixingVulnerabilities"
+              :loading="
+                servicesStore.fixingVulnerabilities ||
+                servicesStore.loadingVulnerabilities
+              "
             />
           </template>
         </q-banner>
@@ -67,7 +64,7 @@
                 <branch-chip
                   :status="
                     servicesStore.servicesStatus.find(
-                      (s) => s.name === props.row.name
+                      (s) => s.name === props.row.name,
                     )
                   "
                 />
@@ -117,6 +114,8 @@
       </q-card-section>
     </q-card>
   </q-page>
+
+  <NpmAuditDialog ref="refNpmAuditDialog" />
 </template>
 
 <script lang="ts" setup>
@@ -125,6 +124,8 @@ import NpmAuditChip from "@/components/chips/NpmAuditChip.vue";
 import BranchChip from "@/components/chips/BranchChip.vue";
 import type { QTableProps } from "quasar";
 import { ref } from "vue";
+import NpmAuditDialog from "@/components/npmAuditDialog/NpmAuditDialog.vue";
+import ConfirmDialog from "@/components/confirmDialog/ConfirmDialog.vue";
 
 const columns: QTableProps["columns"] = [
   {
@@ -183,12 +184,34 @@ const refreshAudit = () => {
   servicesStore.getNpmAuditForAllServices();
 };
 
+const refNpmAuditDialog = ref(NpmAuditDialog);
 const tryAutoFix = async () => {
-  await servicesStore.tryAutoFixAllServices();
+  refNpmAuditDialog.value.showDialog({
+    confirmAction: (params: {
+      servicesToFix: string[];
+      useForce: boolean;
+      pushToOrigin: boolean;
+      branch: string;
+    }) => {
+      console.log(params);
+    },
+    servicesToFix: servicesStore.services.map((s) => {
+      return {
+        name: s.name,
+        fix: s.vulnerabilities
+          ? Boolean(
+              s.vulnerabilities.info +
+                s.vulnerabilities.low +
+                s.vulnerabilities.moderate +
+                s.vulnerabilities.high +
+                s.vulnerabilities.critical,
+            )
+          : false,
+      };
+    }),
+  });
+  //await servicesStore.tryAutoFixAllServices();
 };
-
-const pushToOrigin = ref(false);
-const useForce = ref(false);
 
 const createMergeRequest = (service: Service) => {
   window.open(
@@ -197,7 +220,7 @@ const createMergeRequest = (service: Service) => {
     }/-/merge_requests/new?merge_request[source_branch]=${
       servicesStore.getServiceStatus(service.name)?.currentGitBranch
     }`,
-    "_blank"
+    "_blank",
   );
 };
 </script>
