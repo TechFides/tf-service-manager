@@ -1,15 +1,15 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { RunCommandDto } from './dto/run-command.dto';
-import { ServicesDto } from './dto/service.dto';
+import { ServicesDto, TaskDto } from './dto/service.dto';
 import { CommandService } from './services/command.service';
-import { TaskDto } from './dto/service.dto';
 import { RunTaskDto } from './dto/run-task.dto';
 import { ServicesStatusDto } from './dto/service-status.dto';
 import { ServicesService } from './services/services.service';
 import { RunNpmScriptDto } from './dto/run-npm-script.dto';
 import { BranchTasksDto } from './dto/branch-task.dto';
 import { NpmAuditService } from './services/npm-audit.service';
+import { NpmAutofixDto } from './dto/npm-autofix.dto';
 
 @Controller()
 export class AppController {
@@ -45,9 +45,9 @@ export class AppController {
   @Post('/services/:serviceName/npm-audit-auto-fix')
   async getNpmAuditAutFixForService(
     @Param('serviceName') serviceName: string,
+    @Body() dto: NpmAutofixDto,
   ): Promise<string> {
-    const result = await this.npmAuditService.npmAuditAutoFix(serviceName);
-    return JSON.parse(result);
+    return this.npmAuditService.npmAuditAutoFix(serviceName, dto);
   }
 
   @Get('/services-status')

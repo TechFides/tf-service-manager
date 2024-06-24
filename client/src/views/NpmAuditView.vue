@@ -27,7 +27,7 @@
               icon="warning"
               color="red"
               label="Try auto fix"
-              @click="tryAutoFix"
+              @click="tryAutoFixButtonClick"
               :loading="
                 servicesStore.fixingVulnerabilities ||
                 servicesStore.loadingVulnerabilities
@@ -184,17 +184,32 @@ const refreshAudit = () => {
   servicesStore.getNpmAuditForAllServices();
 };
 
+const doNpmAuditAutoFix = async (params: {
+  servicesToFix: string[];
+  useForce: boolean;
+  pushToOrigin: boolean;
+  branch: string;
+}) => {
+  console.log(params);
+
+  servicesStore.fixingVulnerabilities = true;
+  servicesStore.loadingVulnerabilities = true;
+  for (const service of params.servicesToFix) {
+    await servicesStore.tryAutoFixService(service, {
+      branch: params.branch,
+      useForce: params.useForce,
+      pushToOrigin: params.pushToOrigin,
+    });
+
+    await servicesStore.getNpmAuditForService(service);
+  }
+  servicesStore.fixingVulnerabilities = false;
+  servicesStore.loadingVulnerabilities = false;
+};
 const refNpmAuditDialog = ref(NpmAuditDialog);
-const tryAutoFix = async () => {
+const tryAutoFixButtonClick = async () => {
   refNpmAuditDialog.value.showDialog({
-    confirmAction: (params: {
-      servicesToFix: string[];
-      useForce: boolean;
-      pushToOrigin: boolean;
-      branch: string;
-    }) => {
-      console.log(params);
-    },
+    confirmAction: doNpmAuditAutoFix,
     servicesToFix: servicesStore.services.map((s) => {
       return {
         name: s.name,

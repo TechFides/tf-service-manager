@@ -55,7 +55,7 @@ export const useServicesStore = defineStore({
       servicesMonitors: [],
       loadingVulnerabilities: false,
       fixingVulnerabilities: false,
-    } as ServiceState),
+    }) as ServiceState,
 
   getters: {
     getServiceStatus: (state) => {
@@ -126,30 +126,31 @@ export const useServicesStore = defineStore({
     },
 
     /**
-     * Tries to automatically fix the given service.
+     * Tries to automatically fix the npm audit issues for a given service.
      *
-     * @param {string} serviceName - The name of the service to be fixed.
-     * @returns {Promise<void>} - A promise that resolves when the auto-fix process completes without any errors.
+     * @param {string} serviceName - The name of the service.
+     * @param {object} params - The parameters for fixing the npm audit issues.
+     * @param {string} params.branch - The branch to use for fixing the issues.
+     * @param {boolean} params.useForce - Whether to force the fixes, even if it may cause breaking changes.
+     * @param {boolean} params.pushToOrgin - Whether to push the fixed changes to the origin repository.
+     * @return {Promise<void>} - A promise that resolves once the fix request has been made.
      */
-    async tryAutoFixService(serviceName: string): Promise<void> {
-      await axios.post(
-        SM_BACKEND_URL + `/services/${serviceName}/npm-audit-auto-fix`
-      );
-    },
-
-    /**
-     * Tries to automatically fix all services.
-     *
-     * @returns {Promise<void>} A promise that resolves once all services have been attempted to be fixed.
-     */
-    async tryAutoFixAllServices(): Promise<void> {
-      this.fixingVulnerabilities = true;
-      for (const service of this.services) {
+    async tryAutoFixService(
+      serviceName: string,
+      params: {
+        branch: string;
+        useForce: boolean;
+        pushToOrigin: boolean;
+      },
+    ): Promise<void> {
+      const service = this.services.find((s) => s.name === serviceName);
+      if (service) {
         delete service.vulnerabilities;
-        await this.tryAutoFixService(service.name);
-        await this.getNpmAuditForService(service.name);
+        await axios.post(
+          SM_BACKEND_URL + `/services/${serviceName}/npm-audit-auto-fix`,
+          params,
+        );
       }
-      this.fixingVulnerabilities = false;
     },
 
     /**
@@ -159,10 +160,13 @@ export const useServicesStore = defineStore({
      */
     async getNpmAuditForService(serviceName: string): Promise<void> {
       const service = this.services.find((s) => s.name === serviceName);
-      if (service) {
+      const serviceStatus = this.servicesStatus.find(
+        (s) => s.name === serviceName,
+      );
+      if (service && serviceStatus?.cloned) {
         delete service.vulnerabilities;
         const response = await axios.get(
-          SM_BACKEND_URL + `/services/${serviceName}/npm-audit`
+          SM_BACKEND_URL + `/services/${serviceName}/npm-audit`,
         );
         const data = response.data as NpmAuditOutput;
         service.vulnerabilities = data.metadata.vulnerabilities;
@@ -172,21 +176,19 @@ export const useServicesStore = defineStore({
     addServiceMonitorData(
       service: string,
       cpuPercent: number,
-      memoryMegaBytes: number
+      memoryMegaBytes: number,
     ) {
       const serviceMonitor = this.servicesMonitors.find(
-        (s) => s.name === service
+        (s) => s.name === service,
       );
 
       if (serviceMonitor) {
         serviceMonitor.cpuPercent.push(cpuPercent);
-        serviceMonitor.cpuPercent = serviceMonitor.cpuPercent.slice(
-          -MAX_MONITOR_HISTORY
-        );
+        serviceMonitor.cpuPercent =
+          serviceMonitor.cpuPercent.slice(-MAX_MONITOR_HISTORY);
         serviceMonitor.memoryMegaBytes.push(memoryMegaBytes);
-        serviceMonitor.memoryMegaBytes = serviceMonitor.memoryMegaBytes.slice(
-          -MAX_MONITOR_HISTORY
-        );
+        serviceMonitor.memoryMegaBytes =
+          serviceMonitor.memoryMegaBytes.slice(-MAX_MONITOR_HISTORY);
       }
     },
   },

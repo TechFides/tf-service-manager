@@ -1,145 +1,57 @@
 {
-  "services_directory": "../../../../tfpl-services-3",
+  "services_directory": "../../../services",
   "services": [
     {
-      "name": "TF_ADM",
+      "name": "SERVICE_1",
       "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-adm",
+      "gitUrl": "gitlab.com/organization/service_1",
+      "port": 3010,
+      "appUrlSuffix": "/api-docs",
+      "color": "teal-9",
+      "genericTasks": [
+        "COPY_ENV",
+        "PRINT_NAME"
+      ],
+      "tasks": [
+        {
+          "name": "COPY_ENV_PROD",
+          "command": "cp .env.prod .env",
+          "color": "red-1",
+          "runIfNotCloned": false,
+          "icon": "priority_high"
+        }
+      ]
+    },
+    {
+      "name": "SERVICE_2",
+      "npmRunLifecycle": "dev",
+      "gitUrl": "gitlab.com/organization/service_2",
       "port": 8012,
       "appUrlSuffix": "",
       "color": "green-9",
       "genericTasks": [
         "COPY_ENV"
       ],
-      "defaultGitBranch": "develop"
+      "tasks": [
+        {
+          "name": "COPY_ENV_PROD",
+          "command": "cp .prod.env .env",
+          "color": "red-1",
+          "runIfNotCloned": false,
+          "icon": "priority_high"
+        }
+      ]
     },
     {
-      "name": "TF_ERP_CLIENT",
+      "name": "SERVICE_3",
       "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-erp/tf-erp-client",
-      "port": 8010,
-      "appUrlSuffix": "",
-      "color": "indigo-9",
-      "genericTasks": [
-        "COPY_ENV"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_HUB_CLIENT",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-hub/tf-hub-client",
-      "port": 8011,
-      "appUrlSuffix": "",
-      "color": "deep-purple-9",
-      "genericTasks": [
-        "COPY_ENV"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_AGW",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-agw",
-      "port": 3010,
-      "appUrlSuffix": "api-docs",
-      "color": "teal-9",
-      "genericTasks": [
-        "COPY_ENV",
-        "RESET_DATABASE"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_ERP_SERVER",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-erp/tf-erp-server",
+      "gitUrl": "gitlab.com/organization/service_3",
       "port": 3011,
-      "appUrlSuffix": "api-docs",
+      "appUrlSuffix": "/swagger",
       "color": "purple-9",
       "genericTasks": [
-        "COPY_ENV",
-        "RESET_DATABASE"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_HUB_SERVER",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-hub/tf-hub-server",
-      "port": 3012,
-      "appUrlSuffix": "api-docs",
-      "color": "pink-9",
-      "genericTasks": [
-        "COPY_ENV",
-        "RESET_DATABASE"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_ASS",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-ass",
-      "port": 3013,
-      "appUrlSuffix": "api-docs",
-      "color": "cyan-9",
-      "genericTasks": [
-        "COPY_ENV",
-        "RESET_DATABASE"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_NOS",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-nos",
-      "port": 3015,
-      "appUrlSuffix": "api-docs",
-      "color": "orange-9",
-      "genericTasks": [
-        "COPY_ENV",
-        "RESET_DATABASE"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_TIS",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-tis",
-      "port": 3016,
-      "appUrlSuffix": "api-docs",
-      "color": "light-green-9",
-      "genericTasks": [
-        "COPY_ENV",
-        "RESET_DATABASE"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_FNS",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-fns",
-      "port": 3014,
-      "appUrlSuffix": "api-docs",
-      "color": "blue-9",
-      "genericTasks": [
-        "COPY_ENV",
-        "RESET_DATABASE"
-      ],
-      "defaultGitBranch": "develop"
-    },
-    {
-      "name": "TF_FIS",
-      "npmRunLifecycle": "dev",
-      "gitUrl": "gitlab.com/techfides/tf-platform/tf-fis",
-      "port": 3017,
-      "appUrlSuffix": "api-docs",
-      "color": "lime-9",
-      "genericTasks": [
-        "COPY_ENV",
-        "RESET_DATABASE"
-      ],
-      "defaultGitBranch": "develop"
+        "COPY_ENV"
+      ]
     }
   ],
   "generic_tasks": [
@@ -151,12 +63,12 @@
       "icon": "file_copy"
     },
     {
-      "name": "RESET_DATABASE",
-      "command": "%{npmCommand} run db:reset",
-      "color": "pink-8",
+      "name": "PRINT_NAME",
+      "command": "echo \"Hello, I am %{service}\"",
+      "color": "red-1",
       "runIfNotCloned": false,
-      "runIfRunStatusIs": [ "STOPPED" ],
-      "icon": "restart_alt"
+      "icon": "person"
     }
-  ]
+  ],
+  "git_interval": 5
 }
