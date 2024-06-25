@@ -7,7 +7,7 @@
 
 # TF Service Manager
 
-Service manager for node and local development, suited for microservices architecture.
+Service manager for node.js ecosystem and local development, suited for microservices architecture.
 
 # Features
 * Service management
@@ -97,7 +97,7 @@ Services consist of the following configuration options
 - `gitUrl` - URL to the git repository
 - `port` - port the service uses
 - `appUrlSuffix` - added to app URL in frontend
-- `color` - service's color in FE
+- `color` - service's color in FE, see https://quasar.dev/style/color-palette
 - `genericTasks` - names of generic tasks to use, these are defined in the generic tasks section (optional)
 - `tasks` - list of tasks defined for the service (optional)
 - `defaultGitBranch` - branch to checkout with GIT\_CHECKOUT command when no branch is provided via an attribute
@@ -108,7 +108,7 @@ Tasks consist of the following configuration options
 
 - `name` - name of the task
 - `command` - task command
-- `color` - currently unused (optional)
+- `color` - currently unused (optional), see https://quasar.dev/style/color-palette
 - `runIfNotCloned` - whether the task can be run when the repository isn't cloned
 - `runIfRunStatusIs` - list of run states when the task can be performed (optional, if not specified, all run states are assumed), the possible states are `RUNNING`, `PENDING`, `STOPPED`
 - `icon` - icon displayed next to the task name (icon names are from the "Material Symbols and Icons" set)
@@ -130,4 +130,15 @@ You can specify multiple special sequences that will be replaced based on the op
 - `%{npmCommand}` - NPM command for the operating system
 - `%{service}` - service name
 
+# Gallery
+## Npm Audit page
+![npm-audit](./images/sm-npm-audit.png)
 
+## Npm audit fix dialog
+![npm-audit-fix](./images/sm-npm-audit-fix.png)
+
+# Service detail page
+![service-detail](./images/sm-service-detail.png)
+
+# All logs page
+![all-logs](./images/sm-all-logs.png)
