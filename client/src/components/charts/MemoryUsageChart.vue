@@ -91,7 +91,7 @@ servicesStore.$subscribe((mutation, state) => {
   for (const serviceMonitor of state.servicesMonitors) {
     const seriesData = option?.value?.series as LineSeriesOption[];
     const series = seriesData.find(
-      (s) => `TF_${s.name}` === serviceMonitor.name
+      (s) => `TF_${s.name}` === serviceMonitor.name,
     );
     if (series) {
       currentTotalUsage +=

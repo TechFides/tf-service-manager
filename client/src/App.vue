@@ -182,7 +182,7 @@ socket.on("message", (msg) => {
       servicesStore.addServiceMonitorData(
         monitor.service,
         monitor.cpuPercent,
-        monitor.memoryMegaBytes
+        monitor.memoryMegaBytes,
       );
     }
   } else {
