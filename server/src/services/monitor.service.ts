@@ -5,7 +5,6 @@ import * as pidusage from 'pidusage';
 import { EventsGateway } from '../events.gateway';
 import { runCommand } from 'src/utils/process';
 import { CommandService } from './command.service';
-import { sleep } from 'src/utils/utils';
 import { ConfigService } from '@nestjs/config';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pidtree = require('pidtree');

@@ -125,7 +125,6 @@ import BranchChip from "@/components/chips/BranchChip.vue";
 import type { QTableProps } from "quasar";
 import { ref } from "vue";
 import NpmAuditDialog from "@/components/npmAuditDialog/NpmAuditDialog.vue";
-import ConfirmDialog from "@/components/confirmDialog/ConfirmDialog.vue";
 
 const columns: QTableProps["columns"] = [
   {

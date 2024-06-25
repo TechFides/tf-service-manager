@@ -24,7 +24,7 @@ export const useLogsStore = defineStore({
   state: () =>
     ({
       logs: shallowRef<Log[]>([]),
-    } as LogsState),
+    }) as LogsState,
 
   getters: {
     logsForService: (state) => {

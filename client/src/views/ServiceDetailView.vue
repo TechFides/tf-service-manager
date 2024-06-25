@@ -29,7 +29,7 @@
             <q-list>
               <q-item
                 v-for="npmScript of servicesStore.getServiceByName(
-                  route.params.name
+                  route.params.name,
                 ).npmScripts"
                 v-bind:key="npmScript"
                 clickable
@@ -73,8 +73,11 @@
             btn-label="Custom action"
             btn-class="q-ma-xs"
             :run-task-function="runTask"
-            :service-name="(route.params.name as string)"
-            :tasks="servicesStore.getServiceByName(route.params.name as string)?.tasks!"
+            :service-name="route.params.name as string"
+            :tasks="
+              servicesStore.getServiceByName(route.params.name as string)
+                ?.tasks!
+            "
           />
         </q-card-section>
       </q-card>
@@ -116,8 +119,8 @@ const route = useRoute();
 const serviceStatus = computed(
   () =>
     servicesStore.servicesStatus.find(
-      (s) => s.name === route.params.name
-    ) as ServiceStatus
+      (s) => s.name === route.params.name,
+    ) as ServiceStatus,
 );
 
 const runTask = (task: string, service: string) => {

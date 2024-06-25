@@ -12,7 +12,7 @@ export const useSettingsStore = defineStore({
     ({
       gitCheckoutType: "ssh",
       selectedServices: [],
-    } as SettingState),
+    }) as SettingState,
 
   getters: {},
   actions: {},

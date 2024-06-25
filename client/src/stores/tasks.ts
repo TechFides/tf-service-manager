@@ -26,7 +26,7 @@ interface TaskState {
 
 const isTaskRunnable = function (
   serviceStatus: ServiceStatus,
-  task: Task
+  task: Task,
 ): boolean {
   if (task.runIfNotCloned) {
     return !serviceStatus.cloned;
@@ -44,7 +44,7 @@ export const useTasksStore = defineStore({
     ({
       tasks: [],
       branchTasks: [],
-    } as TaskState),
+    }) as TaskState,
 
   getters: {
     runnableStatus: (state): { [key: string]: { [key: string]: boolean } } => {
@@ -56,7 +56,7 @@ export const useTasksStore = defineStore({
         for (const serviceStatus of servicesStore.servicesStatus) {
           result[task.name][serviceStatus.name] = isTaskRunnable(
             serviceStatus,
-            task
+            task,
           );
         }
       }
@@ -68,7 +68,7 @@ export const useTasksStore = defineStore({
           for (const serviceStatus of servicesStore.servicesStatus) {
             result[task.name][serviceStatus.name] = isTaskRunnable(
               serviceStatus,
-              task
+              task,
             );
           }
         }
