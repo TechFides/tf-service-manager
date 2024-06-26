@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as waitOn from 'wait-on';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { ConfigService } from '@nestjs/config';
+import * as console from 'node:console';
 
 export enum ServiceRunStatus {
   RUNNING = 'RUNNING',
@@ -100,11 +101,8 @@ export class ServicesService {
       baseService.runningTasks = [];
       this.services.push(service as BaseService);
     }
-    let directory = configService.get<string>('services_directory');
-    if (directory[0] === '.') {
-      directory = `${__dirname}/${directory}`;
-    }
-    this.servicesDirectory = directory;
+    const directory = configService.get<string>('services_directory');
+    this.servicesDirectory = path.resolve(`${__dirname}/../../../${directory}`);
   }
   async getServicesDto(): Promise<ServiceDto[]> {
     const result = [];
@@ -135,6 +133,7 @@ export class ServicesService {
   getServices(): BaseService[] {
     return this.services;
   }
+
   getGenericTasks(): Task[] {
     return this.genericTasks;
   }

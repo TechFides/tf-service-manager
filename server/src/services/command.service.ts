@@ -121,22 +121,36 @@ export class CommandService {
       process.platform === 'win32'
         ? `Remove-Item -Recurse -Force -Path`
         : `rm -rf`;
-    let directory = configService.get<string>('services_directory');
-    if (directory[0] === '.') {
-      directory = `${__dirname}/${directory}`;
-    }
-    this.servicesDirectory = directory;
+    const directory = configService.get<string>('services_directory');
+    this.servicesDirectory = path.resolve(`${__dirname}/../../../${directory}`);
   }
 
+  /**
+   * Retrieves the list of tasks.
+   *
+   * @returns {TaskDto[]} An array of tasks.
+   */
   getTasks(): TaskDto[] {
     return baseTasks as TaskDto[];
   }
 
+  /**
+   * Retrieves the tasks for a branch.
+   *
+   * @returns {BranchTaskDto[]} - An array of branch tasks.
+   */
   getBranchTasks(): BranchTaskDto[] {
     return branchTasks;
   }
 
-  runNpmScript(service: string, npmScript: string) {
+  /**
+   * Executes an npm script for a given service.
+   *
+   * @param {string} service - The name of the service.
+   * @param {string} npmScript - The name of the npm script to run.
+   * @returns {string} - Returns 'OK' if the script is successfully executed.
+   */
+  runNpmScript(service: string, npmScript: string): string {
     const cwd = this.servicesService.getServicePath(service);
     const command = `${this.npmCommand} run ${npmScript}`;
     this.servicesService.setServiceRunningNpmScript(service, npmScript);
@@ -147,6 +161,14 @@ export class CommandService {
     return 'OK';
   }
 
+  /**
+   * Runs a task for a given service.
+   *
+   * @param {string} task - The task to run.
+   * @param {string} serviceName - The name of the service.
+   * @param {Object} attributes - Additional attributes for the task.
+   * @returns {string} - The status of the task.
+   */
   runTask(
     task: string,
     serviceName: string,
@@ -228,6 +250,7 @@ export class CommandService {
         if (!ensureDirectory(this.servicesDirectory)) {
           break;
         }
+
         this.runProcess(task, command, '', serviceName, cwd).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();

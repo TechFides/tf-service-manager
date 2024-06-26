@@ -8,16 +8,16 @@ import {access} from "fs/promises";
  * Executes a command as a child process.
  *
  * @param {string} command - The command to run.
- * @param {string} prefix - The prefix to prepend to log messages.
+ * @param {string} logsPrefix - The logsPrefix to prepend to log messages.
  * @param {string} color - The color to use for log messages.
  * @param {string} cwd - The working directory for the child process.
  * @returns {Promise<string>} - A promise that resolves with the output of the command.
  */
-const runProcess = (command: string, prefix: string, color:string, cwd: string) : Promise<string> => {
+const runProcess = (command: string, logsPrefix: string, color:string, cwd: string = './') : Promise<string> => {
     return new Promise(function (resolve) {
         let resultData = '';
         const chunks = command.split(' ');
-        console.log(chalk.green(`${prefix} Running: ${command}`));
+        console.log(`${logsPrefix} Running: ${chalk.italic(command)}`);
         const process = spawn(chunks[0], chunks.slice(1), {cwd});
         process.stderr.on('data', function (data) {
             data
@@ -26,7 +26,7 @@ const runProcess = (command: string, prefix: string, color:string, cwd: string) 
                 .map((i:string) => i.trim())
                 .filter((i:string) => i !== '')
                 .map(stripAnsi)
-                .forEach((line:string) => console.log(chalk[color](`${prefix} ${line}`)));
+                .forEach((line:string) => console.log(chalk[color](`${logsPrefix} ${line}`)));
         });
 
         process.stdout.on('data', function (data) {
@@ -37,14 +37,14 @@ const runProcess = (command: string, prefix: string, color:string, cwd: string) 
                 .map((i:string) => i.trim())
                 .filter((i:string) => i !== '')
                 .map(stripAnsi)
-                .forEach((line: string) => console.log(chalk[color](`${prefix} ${line}`)));
+                .forEach((line: string) => console.log(chalk[color](`${logsPrefix} ${line}`)));
         });
 
         process.on('exit', function (code) {
             if (code !== 0) {
                 console.log(
                     chalk.red(
-                        `${prefix} child process exited with code ${code?.toString()}`,
+                        `${logsPrefix} child process exited with code ${code?.toString()}`,
                     ),
                 );
             }
@@ -74,6 +74,13 @@ const fileExists = async (path:string): Promise<boolean> => {
 };
 
 /**
+ * Retrieves the appropriate npm command for the current platform.
+ *
+ * @returns {string} The npm command for the current platform.
+ */
+const getMultiPlatformNpmCommand = (): string => process.platform === 'win32' ? 'npm.cmd' : 'npm';
+
+/**
  * Run the Service Manager backend.
  * This function starts the backend server by running the "npm run dev" command.
  * If the current platform is Windows, it uses "npm.cmd", otherwise it uses "npm".
@@ -84,9 +91,8 @@ const fileExists = async (path:string): Promise<boolean> => {
  * @returns {Promise<void>} A Promise that resolves when the backend server is started.
  */
 const runServiceManagerBackend = async (): Promise<void> => {
-    const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     await runProcess(
-        `${command} run dev`,
+        `${getMultiPlatformNpmCommand()} run dev`,
         '[SERVER]',
         'green',
         `./server`,
@@ -100,13 +106,26 @@ const runServiceManagerBackend = async (): Promise<void> => {
  * @return {Promise<void>} - A promise that resolves when the Service Manager Frontend has finished running.
  */
 const runServiceManagerFrontend = async (): Promise<void> => {
-    const command = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     const args = (await fileExists('/.dockerenv')) ? '--host 0.0.0.0' : '';
     await runProcess(
-        `${command} run dev -- ${args}`,
+        `${getMultiPlatformNpmCommand()} run dev -- ${args}`,
         '[CLIENT]',
         'blue',
         `./client`,
+    );
+}
+
+const copyEnvFiles = async (): Promise<void> => {
+    await runProcess(
+        `cp .env ./server/.env`,
+        '[COPY_ENV]',
+        'white',
+    );
+
+    await runProcess(
+        `cp .env ./client/.env`,
+        '[COPY_ENV]',
+        'white',
     );
 }
 
@@ -117,7 +136,8 @@ const runServiceManagerFrontend = async (): Promise<void> => {
  * @function main
  * @returns {void}
  */
-const main = (): void=> {
+const main = async (): Promise<void> => {
+    await copyEnvFiles();
     runServiceManagerBackend();
     runServiceManagerFrontend();
 };

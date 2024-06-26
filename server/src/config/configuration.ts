@@ -12,7 +12,7 @@ export default () => {
     return defaultConfig;
   }
   const configuration = JSON.parse(
-    readFileSync(process.env.SERVICE_MANAGER_CONFIG_FILE, 'utf8'),
+    readFileSync('../' + process.env.SERVICE_MANAGER_CONFIG_FILE, 'utf8'),
   ) as Record<string, any>;
   if (!('services_directory' in configuration)) {
     configuration.services_directory = defaultConfig.services_directory;
