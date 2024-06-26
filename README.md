@@ -137,8 +137,8 @@ You can specify multiple special sequences that will be replaced based on the op
 ## Npm audit fix dialog
 ![npm-audit-fix](./images/sm-npm-audit-fix.png)
 
-# Service detail page
+## Service detail page
 ![service-detail](./images/sm-service-detail.png)
 
-# All logs page
+## All logs page
 ![all-logs](./images/sm-all-logs.png)
