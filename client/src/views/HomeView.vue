@@ -236,7 +236,7 @@ const serviceStatusColumns = computed((): QTableProps["columns"] => {
   }
   columns.push({
     name: "custom",
-    label: "Custom action",
+    label: "CUSTOM TASKS",
     align: "center",
     field: (row) => row.currentGitBranch,
   });

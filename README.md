@@ -28,8 +28,8 @@ Service manager for node.js ecosystem and local development, suited for microser
 # Quick start
 1. clone this repo
 2. run `npm i`
-3. run `cp ./server/.env.example ./server/.env`
-4. edit file `./server/config.example.json`
+3. run `cp .env.example .env` (optional edit file)
+4. edit file `./config.example.json`
 5. `npm start`
 6. open http://localhost:5173/
 
@@ -43,6 +43,8 @@ The file has the following format:
 
 ```json
 {
+  "services_directory": "../_services",
+  "git_interval": 5,
   "services": [
     {
       "name": "SERVICE",
@@ -82,9 +84,7 @@ The file has the following format:
       "runIfNotCloned": false,
       "icon": "person"
     }
-  ],
-  "services_directory": "../../../services",
-  "git_interval": 5
+  ]
 }
 ```
 
@@ -102,6 +102,11 @@ Services consist of the following configuration options
 - `tasks` - list of tasks defined for the service (optional)
 - `defaultGitBranch` - branch to checkout with GIT\_CHECKOUT command when no branch is provided via an attribute
 
+## Services statuses
+- `STOPPED` - service is stopped and not running
+- `PENDING` - service is pending after `START_SERVICE` task activation, waiting for connection to `port` defined at config
+- `RUNNING` - service is running, Service Manager successfully connected to `port` defined in config
+
 ## Tasks
 
 Tasks consist of the following configuration options
@@ -113,7 +118,14 @@ Tasks consist of the following configuration options
 - `runIfRunStatusIs` - list of run states when the task can be performed (optional, if not specified, all run states are assumed), the possible states are `RUNNING`, `PENDING`, `STOPPED`
 - `icon` - icon displayed next to the task name (icon names are from the "Material Symbols and Icons" set)
 
-## Generic Tasks
+### Default Tasks
+- `GIT_CLONE` - clones repo to `services_directory` directory
+- `REMOVE_SERVERI` - deletes service from filesystem, ⚠️ un-pushed changes wil be lost ⚠️
+- `NPM_INSTALL` - runs `npm i`
+- `START_SERVICE` - runs `npm run ${npmRunLifecycle}`, see service configuration
+- `STOP_SERVER` - kills process created by `START_SERVICE`
+
+### Generic Tasks (reusable tasks)
 
 Same as regular tasks, but can be used in multiple services via the `genericTasks` configuration
 
@@ -129,6 +141,11 @@ You can specify multiple special sequences that will be replaced based on the op
 - `%{rm}` - delete command for the operating system
 - `%{npmCommand}` - NPM command for the operating system
 - `%{service}` - service name
+
+# Troubleshooting
+if something goes wrong
+- refresh page
+- kill (CTRL+C) and rerun `npm start`, its kills all nested processes
 
 # Gallery
 ## Npm Audit page

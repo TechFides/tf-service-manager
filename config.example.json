@@ -1,0 +1,44 @@
+{
+  "services_directory": "../_services",
+  "git_interval": 5,
+  "services": [
+    {
+      "name": "SERVICE",
+      "npmRunLifecycle": "dev",
+      "gitUrl": "gitlab.com/organization/repository",
+      "port": 3000,
+      "appUrlSuffix": "api-docs",
+      "color": "teal-9",
+      "genericTasks": [
+        "COPY_ENV"
+      ],
+      "tasks": [
+        {
+          "name": "COPY_ENV_PROD",
+          "command": "cp .env.prod .env",
+          "color": "red-1",
+          "runIfNotCloned": false,
+          "icon": "priority_high"
+        }
+      ],
+      "defaultGitBranch": "develop"
+    }
+  ],
+  "generic_tasks": [
+    {
+      "name": "COPY_ENV",
+      "command": "cp .env.example .env",
+      "color": "red-1",
+      "runIfNotCloned": false,
+      "runIfRunStatusIs": [ "STOPPED" ],
+      "icon": "file_copy"
+    },
+    {
+      "name": "PRINT_NAME",
+      "command": "echo \"Hello, I am %{service}\"",
+      "color": "red-1",
+      "runIfNotCloned": false,
+      "icon": "person"
+    }
+  ]
+}
