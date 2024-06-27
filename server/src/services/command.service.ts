@@ -122,7 +122,11 @@ export class CommandService {
         ? `Remove-Item -Recurse -Force -Path`
         : `rm -rf`;
     const directory = configService.get<string>('services_directory');
-    this.servicesDirectory = path.resolve(`${__dirname}/../../../${directory}`);
+    if (path.isAbsolute(directory)) {
+      this.servicesDirectory = path.resolve(directory);
+    } else {
+      this.servicesDirectory = path.resolve(`${__dirname}/../../../${directory}`);
+    }
   }
 
   /**

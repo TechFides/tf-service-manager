@@ -102,7 +102,11 @@ export class ServicesService {
       this.services.push(service as BaseService);
     }
     const directory = configService.get<string>('services_directory');
-    this.servicesDirectory = path.resolve(`${__dirname}/../../../${directory}`);
+    if (path.isAbsolute(directory)) {
+      this.servicesDirectory = path.resolve(directory);
+    } else {
+      this.servicesDirectory = path.resolve(`${__dirname}/../../../${directory}`);
+    }
   }
   async getServicesDto(): Promise<ServiceDto[]> {
     const result = [];
