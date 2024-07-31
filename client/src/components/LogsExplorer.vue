@@ -17,48 +17,30 @@
         @click="clearLogsCallback"
       />
     </div>
-    <div class="logs-container">
-      <q-virtual-scroll
-        ref="virtualListRef"
-        :style="`max-height: ${height}px`"
-        :items="logs"
-        virtual-scroll-item-size="22"
-        v-slot="{ item, index }"
-      >
-        <div :key="index">
-          <q-chip square size="sm" color="grey-9">{{
-            item.ts.substring(11, 19)
-          }}</q-chip>
-          <q-chip
-            square
-            size="sm"
-            :color="item.color"
-            class="service-chip text-center"
-            >{{ item.service }}</q-chip
-          >
-          <q-chip v-if="item.info" square size="sm" color="orange-14"
-            ><q-icon name="info" size="15px"
-          /></q-chip>
-          {{}}
-          <span v-html="ansiHtml(item.line)" />
-        </div>
-      </q-virtual-scroll>
-    </div>
-    <q-banner v-if="logs.length === 0" rounded class="bg-orange-14 text-white">
-      <template v-slot:avatar>
-        <q-icon name="error_outline" color="white" />
-      </template>
-      There is no logs to display
-    </q-banner>
+    <ag-grid-vue
+      ref="agGrid"
+      class="ag-theme-alpine-dark"
+      :style="`width: 100%; height: ${props.height}px;`"
+      :rowData="props.logs"
+      :columnDefs="columnDefs"
+      :defaultColDef="defaultColDef"
+      @first-data-rendered="onFirstDataRendered"
+      @row-data-updated="onRowDataUpdated"
+      :suppress-scroll-on-new-data="true"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import { AgGridVue } from "ag-grid-vue3";
+import type { ColDef } from "ag-grid-community";
 import type { Log } from "@/stores/logs";
-import { ref, watch } from "vue";
-import type { QVirtualScroll } from "quasar";
-
-import ansiHtml from "ansi-html";
+import LineRenderer from "@/components/agGridRenderers/LineRenderer.vue";
+import DateTimeChipCellRenderer from "@/components/agGridRenderers/DateTimeChipCellRenderer.vue";
+import ServiceChipCellRenderer from "@/components/agGridRenderers/ServiceChipCellRenderer.vue";
 
 const props = defineProps<{
   logs: Log[];
@@ -67,34 +49,75 @@ const props = defineProps<{
 }>();
 
 const autoScroll = ref(true);
-const virtualListRef = ref<QVirtualScroll>(null);
-watch(
-  () => props.logs,
-  () => {
-    if (autoScroll.value) {
-      virtualListRef.value.scrollTo(props.logs.length);
-    }
+const agGrid = ref<InstanceType<typeof AgGridVue>>(null);
+
+const columnDefs = ref<ColDef[]>([
+  {
+    field: "ts",
+    headerName: "Time",
+    maxWidth: 100,
+    cellRenderer: DateTimeChipCellRenderer,
+    cellStyle: {
+      display: "flex",
+      alignItems: "center",
+    },
   },
-);
+  {
+    headerName: "Service",
+    field: "service",
+    cellRenderer: ServiceChipCellRenderer,
+    maxWidth: 120,
+    cellStyle: {
+      display: "flex",
+      alignItems: "center",
+    },
+  },
+  {
+    field: "line",
+    headerName: "Line",
+    cellRenderer: LineRenderer,
+    cellStyle: {
+      display: "flex",
+      alignItems: "center",
+    },
+  },
+]);
+
+const defaultColDef = ref({
+  flex: 1,
+  minWidth: 100,
+  sortable: true,
+  filter: true,
+  resizable: true,
+});
+
+const scrollToBottom = () => {
+  if (autoScroll.value && agGrid.value) {
+    const rowCount = agGrid.value.api.getDisplayedRowCount();
+    agGrid.value.api.ensureIndexVisible(rowCount - 1, "bottom");
+  }
+};
+
+const onFirstDataRendered = () => {
+  scrollToBottom();
+};
+
+const onRowDataUpdated = () => {
+  scrollToBottom();
+};
 </script>
 
 <style scoped lang="scss">
 .logs-container {
   font-family: monospace;
   font-size: 11px;
-  .q-chip {
-    margin: 1px;
-  }
-  .service-chip {
-    width: 100px;
-    ::v-deep(div) {
-      display: inline;
-      text-align: center;
-    }
-  }
   p {
     padding: 0;
     margin: 0;
   }
+}
+.ag-theme-alpine-dark {
+  --ag-font-size: 10px;
+  --ag-row-height: 30px;
 }
 </style>

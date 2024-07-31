@@ -2,7 +2,7 @@
   <q-page class="q-pa-md">
     <div class="row full-height">
       <q-card flat class="col-12 q-pa-sm">
-        <q-card-section class="">
+        <q-card-section>
           <logs-explorer
             :logs="logsStore.allLogs"
             :height="logsExplorerHeight"
@@ -11,25 +11,17 @@
         </q-card-section>
       </q-card>
     </div>
-    <q-page-scroller
-      reverse
-      position="bottom-right"
-      :scroll-offset="20"
-      :offset="[20, 20]"
-    >
-      <q-btn fab icon="keyboard_arrow_down" color="primary" />
-    </q-page-scroller>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import LogsExplorer from "@/components/LogsExplorer.vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useLogsStore } from "@/stores/logs";
-import { onMounted, onUnmounted, ref } from "vue";
 
 const logsStore = useLogsStore();
 const clearLogs = () => {
-  console.log(`Clearing logs for all services`);
+  console.log("Clearing logs for all services");
   logsStore.clearLogs();
 };
 
