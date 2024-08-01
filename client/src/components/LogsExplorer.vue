@@ -108,14 +108,6 @@ const onRowDataUpdated = () => {
 </script>
 
 <style scoped lang="scss">
-.logs-container {
-  font-family: monospace;
-  font-size: 11px;
-  p {
-    padding: 0;
-    margin: 0;
-  }
-}
 .ag-theme-alpine-dark {
   --ag-font-size: 10px;
   --ag-row-height: 30px;

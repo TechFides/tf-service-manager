@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex align-center centered-chip">
+  <div class="align-center">
     <q-chip square color="grey-9" size="sm">{{
       params.value.substring(11, 19)
     }}</q-chip>

@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex align-center service-chip">
+  <div class="align-center">
     <q-chip class="chip" square :color="params.data.color" size="sm">{{
       params.value
     }}</q-chip>
