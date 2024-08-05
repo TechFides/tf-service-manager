@@ -15,4 +15,12 @@ type Props = { params: ICellRendererParams };
 defineProps<Props>();
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@import url("https://fonts.googleapis.com/css2?family=Material+Icons");
+
+.d-flex {
+  display: flex;
+  align-items: center;
+  font-family: "Material Icons", Arial, sans-serif;
+}
+</style>
