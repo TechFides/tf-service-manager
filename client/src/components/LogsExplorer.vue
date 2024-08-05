@@ -26,7 +26,6 @@
         class="q-mr-md"
       />
       <q-btn
-        class=""
         size="sm"
         color="negative"
         icon="delete"
@@ -43,17 +42,18 @@
       :defaultColDef="defaultColDef"
       @first-data-rendered="onFirstDataRendered"
       @row-data-updated="onRowDataUpdated"
+      @body-scroll="onBodyScroll"
       :suppress-scroll-on-new-data="true"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { AgGridVue } from "ag-grid-vue3";
-import type { ColDef } from "ag-grid-community";
+import type { BodyScrollEvent, ColDef } from "ag-grid-community";
 import type { Log } from "@/stores/logs";
 import LineRenderer from "@/components/agGridRenderers/LineRenderer.vue";
 import DateTimeChipCellRenderer from "@/components/agGridRenderers/DateTimeChipCellRenderer.vue";
@@ -127,6 +127,20 @@ const onRowDataUpdated = () => {
   scrollToBottom();
 };
 
+const onBodyScroll = () => {
+  if (agGrid.value) {
+    const gridContainer = agGrid.value.$el.querySelector(".ag-body-viewport");
+
+    if (gridContainer) {
+      const scrollTop = gridContainer.scrollTop;
+      const scrollHeight = gridContainer.scrollHeight;
+      const clientHeight = gridContainer.clientHeight;
+
+      autoScroll.value = Math.ceil(scrollTop + clientHeight) >= scrollHeight;
+    }
+  }
+};
+
 const increaseFontSize = () => {
   fontSize.value += 1;
   fontSizeStore.setFontSize(fontSize.value);
@@ -143,6 +157,17 @@ watch(
     fontSize.value = newFontSize;
   },
 );
+
+onMounted(() => {
+  if (agGrid.value) {
+    const gridContainer = agGrid.value.$el.querySelector(".ag-body-viewport");
+    if (gridContainer) {
+      gridContainer.addEventListener("scroll", (event: unknown) =>
+        onBodyScroll(),
+      );
+    }
+  }
+});
 </script>
 
 <style scoped lang="scss">
