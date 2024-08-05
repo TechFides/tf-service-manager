@@ -2,14 +2,21 @@
   <div>
     <div class="text-right">
       <div class="font-size-controls q-mx-md">
-        <span>Font Size: </span>
+        <span>Font Size:</span>
         <q-btn
           size="sm"
           color="primary"
           icon="remove"
           @click="decreaseFontSize"
+          :disable="fontSize <= 10"
         />
-        <q-btn size="sm" color="primary" icon="add" @click="increaseFontSize" />
+        <q-btn
+          size="sm"
+          color="primary"
+          icon="add"
+          @click="increaseFontSize"
+          :disable="fontSize >= 20"
+        />
       </div>
       <q-toggle
         v-model="autoScroll"
@@ -51,7 +58,7 @@ import type { Log } from "@/stores/logs";
 import LineRenderer from "@/components/agGridRenderers/LineRenderer.vue";
 import DateTimeChipCellRenderer from "@/components/agGridRenderers/DateTimeChipCellRenderer.vue";
 import ServiceChipCellRenderer from "@/components/agGridRenderers/ServiceChipCellRenderer.vue";
-import "ag-grid-community/styles/ag-theme-material.css"; // Import the new theme
+import "ag-grid-community/styles/ag-theme-material.css";
 import { useFontSizeStore } from "@/stores/fontSize";
 
 const props = defineProps<{
@@ -70,7 +77,6 @@ const columnDefs = ref<ColDef[]>([
   {
     field: "ts",
     headerName: "Time",
-    maxWidth: 100,
     cellRenderer: DateTimeChipCellRenderer,
     cellStyle: {
       display: "flex",
@@ -81,7 +87,6 @@ const columnDefs = ref<ColDef[]>([
     headerName: "Service",
     field: "service",
     cellRenderer: ServiceChipCellRenderer,
-    maxWidth: 120,
     cellStyle: {
       display: "flex",
       alignItems: "center",
@@ -100,7 +105,7 @@ const columnDefs = ref<ColDef[]>([
 
 const defaultColDef = ref({
   flex: 1,
-  minWidth: 100,
+  minWidth: 120,
   sortable: true,
   filter: true,
   resizable: true,
@@ -118,6 +123,7 @@ const onFirstDataRendered = () => {
 };
 
 const onRowDataUpdated = () => {
+  agGrid.value.api.autoSizeColumns(["ts", "service"]);
   scrollToBottom();
 };
 
@@ -127,7 +133,7 @@ const increaseFontSize = () => {
 };
 
 const decreaseFontSize = () => {
-  fontSize.value = Math.max(fontSize.value - 1, 6); // Prevent font size from getting too small
+  fontSize.value = Math.max(fontSize.value - 1, 6);
   fontSizeStore.setFontSize(fontSize.value);
 };
 
