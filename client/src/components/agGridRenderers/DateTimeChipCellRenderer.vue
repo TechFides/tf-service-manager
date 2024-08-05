@@ -1,8 +1,8 @@
 <template>
-  <div class="align-center">
-    <q-chip square color="grey-9" size="sm">{{
-      params.value.substring(11, 19)
-    }}</q-chip>
+  <div class="align-center cell-renderer">
+    <q-chip square color="grey-9" size="sm">
+      {{ params.value.substring(11, 19) }}
+    </q-chip>
   </div>
 </template>
 
@@ -13,4 +13,10 @@ type Props = { params: ICellRendererParams };
 defineProps<Props>();
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss">
+.cell-renderer {
+  .q-chip__content {
+    font-size: var(--ag-font-size);
+  }
+}
+</style>
