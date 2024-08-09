@@ -60,6 +60,7 @@ import DateTimeChipCellRenderer from "@/components/agGridRenderers/DateTimeChipC
 import ServiceChipCellRenderer from "@/components/agGridRenderers/ServiceChipCellRenderer.vue";
 import "ag-grid-community/styles/ag-theme-material.css";
 import { useFontSizeStore } from "@/stores/fontSize";
+import stripAnsi from "strip-ansi";
 
 const props = defineProps<{
   logs: Log[];
@@ -102,6 +103,7 @@ const columnDefs = ref<ColDef[]>([
       display: "flex",
       alignItems: "center",
     },
+    valueFormatter: (params) => stripAnsi(params.value),
   },
 ]);
 
