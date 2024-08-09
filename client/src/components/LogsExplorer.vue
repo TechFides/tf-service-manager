@@ -53,7 +53,7 @@ import { onMounted, ref, watch } from "vue";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { AgGridVue } from "ag-grid-vue3";
-import type { BodyScrollEvent, ColDef } from "ag-grid-community";
+import { type ColDef } from "ag-grid-community";
 import type { Log } from "@/stores/logs";
 import LineRenderer from "@/components/agGridRenderers/LineRenderer.vue";
 import DateTimeChipCellRenderer from "@/components/agGridRenderers/DateTimeChipCellRenderer.vue";
@@ -65,6 +65,7 @@ const props = defineProps<{
   logs: Log[];
   height: number;
   clearLogsCallback: () => void;
+  showServiceName: boolean;
 }>();
 
 const autoScroll = ref(true);
@@ -91,6 +92,7 @@ const columnDefs = ref<ColDef[]>([
       display: "flex",
       alignItems: "center",
     },
+    hide: !props.showServiceName,
   },
   {
     field: "line",

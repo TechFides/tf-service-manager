@@ -7,6 +7,7 @@
             :logs="logsStore.allLogs"
             :height="logsExplorerHeight"
             :clear-logs-callback="clearLogs"
+            :show-service-name="true"
           />
         </q-card-section>
       </q-card>
@@ -30,7 +31,7 @@ const clearLogs = () => {
  */
 const logsExplorerHeight = ref<number>(0);
 const resizeObserver = () => {
-  logsExplorerHeight.value = window.innerHeight - 165;
+  logsExplorerHeight.value = window.innerHeight - 175;
 };
 onMounted(() => {
   window.addEventListener("resize", resizeObserver);
