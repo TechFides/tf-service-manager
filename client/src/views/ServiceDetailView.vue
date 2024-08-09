@@ -89,6 +89,7 @@
             :logs="logsStore.logsForService(route.params.name)"
             :height="logsExplorerHeight"
             :clear-logs-callback="clearLogs"
+            :show-service-name="false"
             ref="logsExplorer"
           />
         </q-card-section>
@@ -150,7 +151,7 @@ const disableTaskBasedOnRunState = (task: Task, service: string): boolean => {
  */
 const logsExplorerHeight = ref<number>(0);
 const resizeObserver = () => {
-  logsExplorerHeight.value = window.innerHeight - 296;
+  logsExplorerHeight.value = window.innerHeight - 310;
 };
 onMounted(() => {
   window.addEventListener("resize", resizeObserver);
