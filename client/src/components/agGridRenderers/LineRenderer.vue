@@ -3,7 +3,8 @@
     <q-chip v-if="params.data.info" square size="sm" color="orange-14">
       <q-icon name="info" size="15px" />
     </q-chip>
-    <span v-html="ansiHTML(params.value)" />
+    <span v-if="!params.data.isJson" v-html="ansiHTML(params.value)" />
+    <span v-else>{{ ansiHTML(params.value) }}</span>
   </div>
 </template>
 
