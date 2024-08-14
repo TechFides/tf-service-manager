@@ -47,6 +47,7 @@ defineExpose({ showDialog, closeDialog });
 <style lang="scss" scoped>
 .confirm-dialog {
   min-width: 500px;
+  max-width: 100%;
   width: auto;
 }
 
