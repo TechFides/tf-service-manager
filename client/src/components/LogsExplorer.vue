@@ -112,11 +112,10 @@ const columnDefs = ref<ColDef[]>([
   },
   {
     field: "action",
-    headerName: "",
     cellRenderer: ActionRenderer,
     sortable: false,
     filter: false,
-    maxWidth: 60,
+    maxWidth: 80,
     cellStyle: {
       display: "flex",
       alignItems: "center",
