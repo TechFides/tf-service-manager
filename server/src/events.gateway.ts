@@ -53,17 +53,17 @@ export class EventsGateway {
   sendLogsToClient(line: string, service: string, info = false): void {
     if (this.isLogPartOfJson(line, service)) {
       this.updateJsonBuffer(line, service);
-    } else {
-      this.logsBuffer.push({
-        uuid: uuid(),
-        ts: new Date(),
-        line: line,
-        isJson: false,
-        service: service,
-        color: this.getServiceColor(service),
-        info,
-      });
+      return;
     }
+    this.logsBuffer.push({
+      uuid: uuid(),
+      ts: new Date(),
+      line: line,
+      isJson: false,
+      service: service,
+      color: this.getServiceColor(service),
+      info,
+    });
   }
 
   /**
@@ -96,17 +96,17 @@ export class EventsGateway {
 
     if (trimmedLine.startsWith('{') && !buffer) {
       this.initializeJsonBuffer(line, service);
-    } else {
-      buffer.lines.push(line);
+      return;
+    }
+    buffer.lines.push(line);
 
-      for (const char of line) {
-        if (char === '{') buffer.stack.push('{');
-        if (char === '}') buffer.stack.pop();
-      }
+    for (const char of line) {
+      if (char === '{') buffer.stack.push('{');
+      if (char === '}') buffer.stack.pop();
+    }
 
-      if (buffer.stack.length === 0) {
-        this.processCompleteJson(service);
-      }
+    if (buffer.stack.length === 0) {
+      this.processCompleteJson(service);
     }
   }
 
