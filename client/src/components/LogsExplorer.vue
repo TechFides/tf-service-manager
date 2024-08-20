@@ -1,5 +1,6 @@
 <template>
   <div>
+    <LogDetailDialog ref="logDetailDialog" />
     <div class="text-right">
       <div class="font-size-controls q-mx-md">
         <span>Font Size:</span>
@@ -49,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { ref, defineProps, onMounted, watch } from "vue";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { AgGridVue } from "ag-grid-vue3";
@@ -61,6 +62,8 @@ import ServiceChipCellRenderer from "@/components/agGridRenderers/ServiceChipCel
 import "ag-grid-community/styles/ag-theme-material.css";
 import { useFontSizeStore } from "@/stores/fontSize";
 import stripAnsi from "strip-ansi";
+import ActionRenderer from "@/components/agGridRenderers/ActionRenderer.vue";
+import LogDetailDialog from "@/components/logDetailDialog/LogDetailDialog.vue";
 
 const props = defineProps<{
   logs: Log[];
@@ -74,6 +77,8 @@ const agGrid = ref<InstanceType<typeof AgGridVue>>(null);
 
 const fontSizeStore = useFontSizeStore();
 const fontSize = ref(fontSizeStore.fontSize);
+
+const logDetailDialog = ref<InstanceType<typeof LogDetailDialog> | null>(null);
 
 const columnDefs = ref<ColDef[]>([
   {
@@ -104,6 +109,24 @@ const columnDefs = ref<ColDef[]>([
       alignItems: "center",
     },
     valueFormatter: (params) => stripAnsi(params.value),
+  },
+  {
+    field: "action",
+    cellRenderer: ActionRenderer,
+    sortable: false,
+    filter: false,
+    maxWidth: 80,
+    cellStyle: {
+      display: "flex",
+      alignItems: "center",
+    },
+    cellRendererParams: {
+      showDialog: (params: { value: string }) => {
+        if (logDetailDialog.value) {
+          logDetailDialog.value.showDialog(params);
+        }
+      },
+    },
   },
 ]);
 
@@ -166,9 +189,7 @@ onMounted(() => {
   if (agGrid.value) {
     const gridContainer = agGrid.value.$el.querySelector(".ag-body-viewport");
     if (gridContainer) {
-      gridContainer.addEventListener("scroll", (event: unknown) =>
-        onBodyScroll(),
-      );
+      gridContainer.addEventListener("scroll", onBodyScroll);
     }
   }
 });
