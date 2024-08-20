@@ -51,7 +51,9 @@ export class EventsGateway {
    * @param {boolean} [info=false] - Indicates if the log contains additional info.
    */
   sendLogsToClient(line: string, service: string, info = false): void {
-    if (!this.isLogPartOfJson(line, service)) {
+    if (this.isLogPartOfJson(line, service)) {
+      this.updateJsonBuffer(line, service);
+    } else {
       this.logsBuffer.push({
         uuid: uuid(),
         ts: new Date(),
@@ -76,35 +78,35 @@ export class EventsGateway {
     const trimmedLine = line.trim();
 
     if (trimmedLine.startsWith('{')) {
-      this.initializeJsonBuffer(service, line);
       return true;
     }
 
-    if (this.jsonLogsBuffer[service]) {
-      this.updateJsonBuffer(service, line);
-      return true;
-    }
-
-    return false;
+    return !!this.jsonLogsBuffer[service];
   }
 
   /**
-   * Updates the JSON buffer with a new log line and checks for completion.
+   * Updates or initialize the JSON buffer with a new log line and checks for completion.
    *
-   * @param {string} service - The name of the service.
    * @param {string} line - The log message.
+   * @param {string} service - The name of the service.
    */
-  private updateJsonBuffer(service: string, line: string): void {
+  private updateJsonBuffer(line: string, service: string): void {
     const buffer = this.jsonLogsBuffer[service];
-    buffer.lines.push(line);
+    const trimmedLine = line.trim();
 
-    for (const char of line) {
-      if (char === '{') buffer.stack.push('{');
-      if (char === '}') buffer.stack.pop();
-    }
+    if (trimmedLine.startsWith('{') && !buffer) {
+      this.initializeJsonBuffer(line, service);
+    } else {
+      buffer.lines.push(line);
 
-    if (buffer.stack.length === 0) {
-      this.processCompleteJson(service);
+      for (const char of line) {
+        if (char === '{') buffer.stack.push('{');
+        if (char === '}') buffer.stack.pop();
+      }
+
+      if (buffer.stack.length === 0) {
+        this.processCompleteJson(service);
+      }
     }
   }
 
@@ -138,10 +140,10 @@ export class EventsGateway {
   /**
    * Initializes the JSON buffer for a given service.
    *
-   * @param {string} service - The name of the service.
    * @param {string} line - The log message.
+   * @param {string} service - The name of the service.
    */
-  private initializeJsonBuffer(service: string, line: string): void {
+  private initializeJsonBuffer(line: string, service: string): void {
     this.jsonLogsBuffer[service] = { lines: [line], stack: ['{'] };
   }
 
