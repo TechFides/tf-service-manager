@@ -62,7 +62,6 @@ import ServiceChipCellRenderer from "@/components/agGridRenderers/ServiceChipCel
 import "ag-grid-community/styles/ag-theme-material.css";
 import { useFontSizeStore } from "@/stores/fontSize";
 import stripAnsi from "strip-ansi";
-import ActionRenderer from "@/components/agGridRenderers/ActionRenderer.vue";
 import LogDetailDialog from "@/components/logDetailDialog/LogDetailDialog.vue";
 
 const props = defineProps<{
@@ -108,18 +107,6 @@ const columnDefs = ref<ColDef[]>([
       display: "flex",
       alignItems: "center",
     },
-    valueFormatter: (params) => stripAnsi(params.value),
-  },
-  {
-    field: "action",
-    cellRenderer: ActionRenderer,
-    sortable: false,
-    filter: false,
-    maxWidth: 80,
-    cellStyle: {
-      display: "flex",
-      alignItems: "center",
-    },
     cellRendererParams: {
       showDialog: (params: { value: string }) => {
         if (logDetailDialog.value) {
@@ -127,6 +114,7 @@ const columnDefs = ref<ColDef[]>([
         }
       },
     },
+    valueFormatter: (params) => stripAnsi(params.value),
   },
 ]);
 

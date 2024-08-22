@@ -1,19 +1,21 @@
 <template>
   <q-dialog v-model="show" persistent>
     <div class="confirm-dialog">
-      <q-card>
-        <q-card-section>
-          <div class="confirm-text">{{ title }}</div>
-          <pre>{{ ansiHTML(content) }}</pre>
+      <q-card class="dialog-card">
+        <q-card-section class="dialog-header">
+          <div class="dialog-header-text">{{ title }}</div>
         </q-card-section>
-        <div class="confirm-buttons">
+        <q-card-section class="dialog-content">
+          <vue-json-pretty :data="content" highlightSelectedNode="false" />
+        </q-card-section>
+        <q-card-section class="confirm-buttons">
           <q-btn
             class="confirm-button"
             :label="cancelBtnLabel"
             outline
             @click="closeDialog"
           />
-        </div>
+        </q-card-section>
       </q-card>
     </div>
   </q-dialog>
@@ -22,7 +24,8 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import type { LogDetailDialogParams } from "@/components/logDetailDialog/logDetailDialogParam";
-import ansiHTML from "ansi-html";
+import VueJsonPretty from "vue-json-pretty";
+import "vue-json-pretty/lib/styles.css";
 
 const title = ref("");
 const content = ref("");
@@ -48,20 +51,39 @@ defineExpose({ showDialog, closeDialog });
 .confirm-dialog {
   min-width: 500px;
   max-width: 100%;
-  width: auto;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
 }
 
-.confirm-text {
+.dialog-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dialog-header {
+  padding-bottom: 0;
+}
+
+.dialog-content {
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(80vh - 180px);
+}
+
+.dialog-header-text {
   font-size: 1.25em;
+  margin-bottom: 8px;
 }
 
 .confirm-buttons {
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
 }
 
 .confirm-button {
-  margin-right: 15px;
-  margin-bottom: 15px;
+  margin-right: 8px;
+  margin-bottom: 8px;
 }
 </style>
