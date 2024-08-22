@@ -24,7 +24,6 @@ import type { LogDetailDialogParams } from "@/components/logDetailDialog/logDeta
 
 type CustomProps = {
   showDialog: (params: LogDetailDialogParams) => void;
-  isJson: boolean;
 };
 
 type Props = { params: ICellRendererParams & CustomProps };
