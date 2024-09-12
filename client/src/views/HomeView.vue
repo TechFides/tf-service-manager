@@ -142,22 +142,42 @@
                     />
                     <span class="">Run for selected</span>
                   </q-td>
-                  <q-td></q-td>
-                  <q-td></q-td>
-                  <q-td></q-td>
-                  <q-td
-                    class="text-center"
-                    v-bind:key="task.name"
-                    v-for="task of tasksStore.tasks"
-                  >
-                    <q-btn
-                      size="sm"
-                      :color="task.color"
-                      :icon="task.icon"
-                      :disable="settingStore.selectedServices.length === 0"
-                      @click="runAllTaskForSelectedServices(task.name)"
-                    />
+                  <q-td class="flex ga-1">
+                    <div
+                      class="text-center"
+                      v-bind:key="task.name + index"
+                      v-for="(task, index) of tasksStore.tasks"
+                    >
+                      <template v-if="isGitTask(task)">
+                        <q-btn
+                          :title="task.name"
+                          size="sm"
+                          :color="task.color"
+                          :icon="task.icon"
+                          :disable="settingStore.selectedServices.length === 0"
+                          @click="runAllTaskForSelectedServices(task.name)"
+                        />
+                      </template>
+                    </div>
                   </q-td>
+                  <q-td></q-td>
+                  <q-td></q-td>
+
+                  <template
+                    v-bind:key="task.name + index"
+                    v-for="(task, index) of tasksStore.tasks"
+                  >
+                    <q-td class="text-center" v-if="!isGitTask(task)">
+                      <q-btn
+                        size="sm"
+                        :color="task.color"
+                        :icon="task.icon"
+                        :disable="settingStore.selectedServices.length === 0"
+                        @click="runAllTaskForSelectedServices(task.name)"
+                      />
+                    </q-td>
+                  </template>
+
                   <q-td key="custom" class="text-center">
                     <custom-action-button
                       :disable-button-function="disableOnEmptySelection"
@@ -196,6 +216,10 @@ import CustomActionButton from "@/components/CustomActionButton.vue";
 
 const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];
 
+const isGitTask = (task: Task): boolean => {
+  return gitTasks.includes(task.name);
+};
+
 const servicesStore = useServicesStore();
 const tasksStore = useTasksStore();
 const settingStore = useSettingsStore();
@@ -227,12 +251,14 @@ const serviceStatusColumns = computed((): QTableProps["columns"] => {
     },
   ];
   for (const task of tasksStore.tasks) {
-    columns.push({
-      name: task.name,
-      label: task.name,
-      align: "center",
-      field: (row) => row.name,
-    });
+    if (!isGitTask(task)) {
+      columns.push({
+        name: task.name,
+        label: task.name,
+        align: "center",
+        field: (row) => row.name,
+      });
+    }
   }
   columns.push({
     name: "custom",
@@ -302,5 +328,9 @@ defineExpose({
 <style lang="scss">
 .run-for-all-services {
   width: 200px;
+}
+
+.ga-1 {
+  gap: 1rem;
 }
 </style>

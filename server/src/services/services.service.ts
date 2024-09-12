@@ -105,7 +105,9 @@ export class ServicesService {
     if (path.isAbsolute(directory)) {
       this.servicesDirectory = path.resolve(directory);
     } else {
-      this.servicesDirectory = path.resolve(`${__dirname}/../../../${directory}`);
+      this.servicesDirectory = path.resolve(
+        `${__dirname}/../../../${directory}`,
+      );
     }
   }
   async getServicesDto(): Promise<ServiceDto[]> {
