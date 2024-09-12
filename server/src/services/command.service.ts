@@ -52,6 +52,30 @@ export const branchTasks: BaseBranchTask[] = [
 
 export const baseTasks: Task[] = [
   {
+    name: DefaultTask.GIT_PULL,
+    command: '',
+    runIfNotCloned: false,
+    runIfRunStatusIs: [ServiceRunStatus.STOPPED],
+    color: 'grey-8',
+    icon: 'file_download',
+  },
+  {
+    name: DefaultTask.GIT_RESET,
+    command: '',
+    runIfNotCloned: false,
+    runIfRunStatusIs: [ServiceRunStatus.STOPPED],
+    color: 'grey-8',
+    icon: 'restart_alt',
+  },
+  {
+    name: DefaultTask.GIT_CHECKOUT,
+    command: '',
+    runIfNotCloned: false,
+    runIfRunStatusIs: [ServiceRunStatus.STOPPED],
+    color: 'grey-8',
+    icon: 'alt_route',
+  },
+  {
     name: DefaultTask.NPM_INSTALL,
     command: '',
     runIfNotCloned: false,
@@ -125,7 +149,9 @@ export class CommandService {
     if (path.isAbsolute(directory)) {
       this.servicesDirectory = path.resolve(directory);
     } else {
-      this.servicesDirectory = path.resolve(`${__dirname}/../../../${directory}`);
+      this.servicesDirectory = path.resolve(
+        `${__dirname}/../../../${directory}`,
+      );
     }
   }
 
