@@ -1,6 +1,11 @@
 <template>
   <div class="align-center cell-renderer">
-    <q-chip class="chip" square :color="params.data.color" size="sm">
+    <q-chip
+      class="chip"
+      square
+      :color="params.data.color"
+      :size="params.getSize()"
+    >
       {{ params.value }}
     </q-chip>
   </div>
