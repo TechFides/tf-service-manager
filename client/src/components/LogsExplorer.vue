@@ -37,7 +37,7 @@
     <ag-grid-vue
       ref="agGrid"
       class="ag-theme-material-dark"
-      :style="`width: 100%; height: ${props.height}px; --ag-font-size: ${fontSize}px;`"
+      :style="`width: 100%; height: ${props.height}px; --ag-font-size: ${fontSize}px; --ag-row-height: ${rowHeight}px;`"
       :rowData="props.logs"
       :columnDefs="columnDefs"
       :defaultColDef="defaultColDef"
@@ -76,14 +76,28 @@ const agGrid = ref<InstanceType<typeof AgGridVue>>(null);
 
 const fontSizeStore = useFontSizeStore();
 const fontSize = ref(fontSizeStore.fontSize);
+const rowHeight = ref(30);
 
 const logDetailDialog = ref<InstanceType<typeof LogDetailDialog> | null>(null);
+
+const getChipSize = () => {
+  return fontSize.value >= 20
+    ? "lg"
+    : fontSize.value >= 14
+      ? "md"
+      : fontSize.value >= 11
+        ? "sm"
+        : "xs";
+};
 
 const columnDefs = ref<ColDef[]>([
   {
     field: "ts",
     headerName: "Time",
     cellRenderer: DateTimeChipCellRenderer,
+    cellRendererParams: {
+      getSize: getChipSize,
+    },
     cellStyle: {
       display: "flex",
       alignItems: "center",
@@ -93,6 +107,9 @@ const columnDefs = ref<ColDef[]>([
     headerName: "Service",
     field: "service",
     cellRenderer: ServiceChipCellRenderer,
+    cellRendererParams: {
+      getSize: getChipSize,
+    },
     cellStyle: {
       display: "flex",
       alignItems: "center",
@@ -159,11 +176,17 @@ const onBodyScroll = () => {
 const increaseFontSize = () => {
   fontSize.value += 1;
   fontSizeStore.setFontSize(fontSize.value);
+  updateRowHeight();
 };
 
 const decreaseFontSize = () => {
   fontSize.value = Math.max(fontSize.value - 1, 6);
   fontSizeStore.setFontSize(fontSize.value);
+  updateRowHeight();
+};
+
+const updateRowHeight = () => {
+  rowHeight.value = fontSize.value * 3;
 };
 
 watch(
@@ -174,6 +197,8 @@ watch(
 );
 
 onMounted(() => {
+  updateRowHeight();
+
   if (agGrid.value) {
     const gridContainer = agGrid.value.$el.querySelector(".ag-body-viewport");
     if (gridContainer) {
@@ -183,19 +208,16 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .ag-theme-material-dark {
-  --ag-font-size: 10px;
-  --ag-row-height: 30px;
+  .ag-row {
+    border-bottom: transparent !important;
+  }
 }
 
 .font-size-controls {
   display: flex;
   align-items: center;
-}
-
-.ag-theme-material-dark .ag-cell {
-  font-size: var(--ag-font-size);
 }
 
 .text-right {

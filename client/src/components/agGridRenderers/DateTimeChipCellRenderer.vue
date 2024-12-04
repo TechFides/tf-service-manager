@@ -1,6 +1,6 @@
 <template>
   <div class="align-center cell-renderer">
-    <q-chip square color="grey-9" size="sm">
+    <q-chip square color="grey-9" :size="params.getSize()">
       {{ params.value.substring(11, 19) }}
     </q-chip>
   </div>

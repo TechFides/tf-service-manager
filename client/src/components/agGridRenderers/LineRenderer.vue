@@ -12,14 +12,15 @@
     >
       <q-icon name="open_in_new" size="15px" @click="openDetail" />
     </q-chip>
-    <span v-if="!params.data.isJson" v-html="ansiHTML(params.value)" />
-    <span v-else>{{ ansiHTML(params.value) }}</span>
+    <span v-if="!params.data.isJson" v-html="htmlData" />
+    <span v-else>{{ htmlData }}</span>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
 import type { ICellRendererParams } from "ag-grid-community";
-import ansiHTML from "ansi-html";
+import { FancyAnsi } from "fancy-ansi";
 import type { LogDetailDialogParams } from "@/components/logDetailDialog/logDetailDialogParam";
 
 type CustomProps = {
@@ -28,6 +29,9 @@ type CustomProps = {
 
 type Props = { params: ICellRendererParams & CustomProps };
 const props = defineProps<Props>();
+
+const fancyAnsi = new FancyAnsi();
+const htmlData = computed(() => fancyAnsi.toHtml(props.params.value));
 
 const openDetail = () => {
   props.params.showDialog({
