@@ -11,6 +11,7 @@ import { BranchTasksDto } from './dto/branch-task.dto';
 import { NpmAuditService } from './services/npm-audit.service';
 import { NpmAutofixDto } from './dto/npm-autofix.dto';
 import { ResetDefaultsService } from './services/reset-defaults.service';
+import * as console from 'node:console';
 
 @Controller()
 export class AppController {
@@ -91,7 +92,12 @@ export class AppController {
   }
 
   @Post('run/reset-all-services')
-  async runResetAllServices(): Promise<string> {
-    return await this.resetDefaultsService.resetAllServices();
+  async runResetAllServices(
+    @Body() body: { gitCheckoutType: string }, // Read it from the body
+  ): Promise<string> {
+    console.log(body.gitCheckoutType); // Extract and log the variable
+    return await this.resetDefaultsService.resetAllServices(
+      body.gitCheckoutType,
+    );
   }
 }

@@ -104,7 +104,11 @@ export const useTasksStore = defineStore({
       });
     },
     async resetAllServices() {
-      await axios.post(SM_BACKEND_URL + "/run/reset-all-services");
+      const settingsStore = useSettingsStore();
+      const gitCheckoutType = settingsStore.gitCheckoutType;
+      await axios.post(SM_BACKEND_URL + `/run/reset-all-services`, {
+        gitCheckoutType: gitCheckoutType,
+      });
     },
   },
 });

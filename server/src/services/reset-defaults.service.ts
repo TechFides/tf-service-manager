@@ -9,7 +9,7 @@ export class ResetDefaultsService {
     private readonly servicesService: ServicesService,
   ) {}
 
-  async resetAllServices(): Promise<string> {
+  async resetAllServices(gitCheckoutType: string): Promise<string> {
     // reset repozitářů (clone pokud neexistují)
     console.log('started procedure');
     const serviceStatuses = this.servicesService.getServicesStatus();
@@ -22,7 +22,7 @@ export class ResetDefaultsService {
       if (!service.cloned) {
         clonePromises.push(
           this.commandService.runTask(DefaultTask.GIT_CLONE, service.name, {
-            gitCheckoutType: 'ssh',
+            gitCheckoutType: gitCheckoutType,
           }),
         );
         continue;
@@ -78,6 +78,8 @@ export class ResetDefaultsService {
 
     await Promise.all(envPromises);
     console.log(`awaiting env promises: count: ${envPromises.length}`);
+
+    await new Promise((resolve) => setTimeout(resolve, 300));
     await Promise.all(dbResetPromises);
     console.log(`awaiting dbreset promises: count: ${dbResetPromises.length}`);
 
