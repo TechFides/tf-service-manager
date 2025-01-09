@@ -223,7 +223,7 @@ export class CommandService {
        *******************************************************/
       case DefaultTask.NPM_INSTALL:
         command = `${this.npmCommand} i`;
-        this.runProcess(task, command, '', serviceName, cwd).then(() => {
+        await this.runProcess(task, command, '', serviceName, cwd).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
         });
@@ -238,7 +238,8 @@ export class CommandService {
           serviceName,
           ServiceRunStatus.PENDING,
         );
-        await this.runProcess(task, command, '', serviceName, cwd);
+        // we don't want to await starting service - it would wait until the service stops
+        this.runProcess(task, command, '', serviceName, cwd);
         this.servicesService.waitOnService(serviceName).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
@@ -281,7 +282,7 @@ export class CommandService {
           break;
         }
 
-        this.runProcess(task, command, '', serviceName, cwd).then(() => {
+        await this.runProcess(task, command, '', serviceName, cwd).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
         });
@@ -326,12 +327,12 @@ export class CommandService {
       default:
         const requestedTask = serviceObject.tasks.find((t) => t.name === task);
         if (serviceObject.genericTasks?.includes(task)) {
-          this.performTask(
+          await this.performTask(
             serviceObject,
             this.servicesService.getGenericTasks().find((t) => t.name === task),
           );
         } else if (typeof requestedTask !== 'undefined') {
-          this.performTask(serviceObject, requestedTask);
+          await this.performTask(serviceObject, requestedTask);
         } else {
           // we've added task before switch
           this.servicesService.removeRunningTask(serviceName, task);
@@ -344,16 +345,20 @@ export class CommandService {
     return 'OK';
   }
 
-  performTask(service: BaseService, task: Task) {
+  async performTask(service: BaseService, task: Task): Promise<void> {
     let command = task.command;
     command = command.replace('%{rm}', this.rmCommand);
     command = command.replace('%{npmCommand}', this.npmCommand);
     command = command.replace('%{service}', service.name);
     const cwd = this.servicesService.getServicePath(service.name);
-    this.runProcess(task.name, command, '', service.name, cwd).then(() => {
-      this.servicesService.setServiceRunningTask(service.name, '');
-      this.eventsGateway.sendStatusUpdateToClient();
-    });
+
+    this.servicesService.setServiceRunningTask(service.name, task.name);
+    this.eventsGateway.sendStatusUpdateToClient();
+
+    await this.runProcess(task.name, command, '', service.name, cwd);
+
+    this.servicesService.setServiceRunningTask(service.name, '');
+    this.eventsGateway.sendStatusUpdateToClient();
   }
 
   killProcess(service: string) {
@@ -380,7 +385,7 @@ export class CommandService {
     cwd: string,
     shell?: string,
     callback: () => void = () => null,
-  ) {
+  ): Promise<string> {
     this.logRunningCommand(command, service);
 
     this.eventsGateway.sendLogsToClient(`-> in path: "${cwd}"`, service, true);

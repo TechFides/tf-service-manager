@@ -10,6 +10,7 @@ import { RunNpmScriptDto } from './dto/run-npm-script.dto';
 import { BranchTasksDto } from './dto/branch-task.dto';
 import { NpmAuditService } from './services/npm-audit.service';
 import { NpmAutofixDto } from './dto/npm-autofix.dto';
+import { ResetDefaultsService } from './services/reset-defaults.service';
 
 @Controller()
 export class AppController {
@@ -18,6 +19,7 @@ export class AppController {
     private readonly servicesService: ServicesService,
     private readonly commandService: CommandService,
     private readonly npmAuditService: NpmAuditService,
+    private readonly resetDefaultsService: ResetDefaultsService,
   ) {}
 
   @Get()
@@ -90,6 +92,6 @@ export class AppController {
 
   @Post('run/reset-all-services')
   async runResetAllServices(): Promise<string> {
-    return await this.servicesService.resetAllServices();
+    return await this.resetDefaultsService.resetAllServices();
   }
 }

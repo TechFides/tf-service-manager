@@ -12,7 +12,7 @@
                 flat
                 label="Reset all to default"
                 class="q-mr-sm"
-                @click="onAddService"
+                @click="resetAllToDefault"
               />
             </div>
           </q-card-section>
@@ -327,6 +327,10 @@ const disableTaskBasedOnRunState = (task: Task, service: string): boolean => {
 };
 const alwaysEnableTask = (): boolean => {
   return false; // used in `disable` so to enable, we must return false
+};
+
+const resetAllToDefault = (): void => {
+  tasksStore.resetAllServices();
 };
 
 defineExpose({

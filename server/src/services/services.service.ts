@@ -7,7 +7,7 @@ import * as waitOn from 'wait-on';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { ConfigService } from '@nestjs/config';
 import * as console from 'node:console';
-import { CommandService, DefaultTask } from './command.service';
+import { CommandService } from './command.service';
 
 export enum ServiceRunStatus {
   RUNNING = 'RUNNING',
@@ -79,10 +79,7 @@ export class ServicesService {
   private readonly services: BaseService[] = [];
   private readonly genericTasks: Task[] = [];
   private readonly servicesDirectory: string;
-  constructor(
-    private readonly commandService: CommandService,
-    configService: ConfigService,
-  ) {
+  constructor(configService: ConfigService) {
     this.genericTasks = configService.get<Task[]>('generic_tasks');
     for (const task of this.genericTasks) {
       ensureTaskHasRequiredFields(task);
@@ -274,76 +271,5 @@ export class ServicesService {
     service.currentGitBranchHasChanges = false;
     service.currentGitBranchAhead = 0;
     service.currentGitBranchBehind = 0;
-  }
-
-  async resetAllServices(): Promise<string> {
-    // reset repozitářů (clone pokud neexistují)
-    const serviceStatuses = this.getServicesStatus();
-    const clonePromises: Promise<string>[] = [];
-    const resetPromises: Promise<string>[] = [];
-    const checkoutPromises: Promise<string>[] = [];
-    const pullPromises: Promise<string>[] = [];
-
-    for (const service of serviceStatuses) {
-      if (!service.cloned) {
-        clonePromises.push(
-          this.commandService.runTask(DefaultTask.GIT_CLONE, service.name, {}),
-        );
-        continue;
-      }
-
-      if (service.currentGitBranchHasChanges) {
-        resetPromises.push(
-          this.commandService.runTask(DefaultTask.GIT_RESET, service.name, {}),
-        );
-      }
-
-      checkoutPromises.push(
-        this.commandService.runTask(DefaultTask.GIT_CHECKOUT, service.name, {}),
-      );
-      pullPromises.push(
-        this.commandService.runTask(DefaultTask.GIT_PULL, service.name, {}),
-      );
-    }
-
-    await Promise.all(clonePromises);
-    await Promise.all(resetPromises);
-    await Promise.all(checkoutPromises);
-    await Promise.all(pullPromises);
-
-    //npm install
-    const npmInstallPromises: Promise<string>[] = [];
-    for (const service of serviceStatuses) {
-      npmInstallPromises.push(
-        this.commandService.runTask(DefaultTask.NPM_INSTALL, service.name, {}),
-      );
-    }
-    await Promise.all(npmInstallPromises);
-
-    //vykopírování envů / db reset
-    const copyEnvTaskName = 'COPY_ENV';
-    const envPromises: Promise<string>[] = [];
-    const dbResetTaskName = 'DB_RESET';
-    const dbResetPromises: Promise<string>[] = [];
-
-    for (const service of this.services) {
-      if (service.tasks.find((t) => t.name == copyEnvTaskName)) {
-        envPromises.push(
-          this.commandService.runTask(copyEnvTaskName, service.name, {}),
-        );
-      }
-
-      if (service.tasks.find((t) => t.name == dbResetTaskName)) {
-        dbResetPromises.push(
-          this.commandService.runTask(dbResetTaskName, service.name, {}),
-        );
-      }
-    }
-
-    await Promise.all(envPromises);
-    await Promise.all(dbResetPromises);
-
-    //nějak notifikuje
-    return 'OK';
   }
 }
