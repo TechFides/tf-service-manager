@@ -6,7 +6,15 @@
       <div class="col-12">
         <q-card flat>
           <q-card-section>
-            <div class="text-h6">Services Status</div>
+            <div class="services-status-container q-gutter-sm">
+              <div class="text-h6">Services Status</div>
+              <q-btn
+                flat
+                label="Reset all to default"
+                class="q-mr-sm"
+                @click="onAddService"
+              />
+            </div>
           </q-card-section>
           <q-separator />
           <q-card-section>
@@ -332,5 +340,11 @@ defineExpose({
 
 .ga-1 {
   gap: 1rem;
+}
+
+.services-status-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

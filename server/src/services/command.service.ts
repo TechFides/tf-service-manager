@@ -199,11 +199,11 @@ export class CommandService {
    * @param {Object} attributes - Additional attributes for the task.
    * @returns {string} - The status of the task.
    */
-  runTask(
+  async runTask(
     task: string,
     serviceName: string,
     attributes: { [key: string]: string },
-  ): string {
+  ): Promise<string> {
     let command = '';
     let cwd = this.servicesService.getServicePath(serviceName);
     const shell = process.platform === 'win32' ? 'powershell.exe' : undefined;
@@ -238,7 +238,7 @@ export class CommandService {
           serviceName,
           ServiceRunStatus.PENDING,
         );
-        this.runProcess(task, command, '', serviceName, cwd);
+        await this.runProcess(task, command, '', serviceName, cwd);
         this.servicesService.waitOnService(serviceName).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
@@ -290,7 +290,7 @@ export class CommandService {
        * SWITCH BRANCH
        *******************************************************/
       case DefaultTask.GIT_CHECKOUT:
-        this.gitService.checkout(serviceName, attributes.branch);
+        await this.gitService.checkout(serviceName, attributes.branch);
         break;
       /**
        * REMOVE_SERVICE
@@ -315,13 +315,13 @@ export class CommandService {
        * GIT_PULL
        *******************************************************/
       case DefaultTask.GIT_PULL:
-        this.gitService.pull(serviceName);
+        await this.gitService.pull(serviceName);
         break;
       /**
        * GIT_RESET
        *******************************************************/
       case DefaultTask.GIT_RESET:
-        this.gitService.reset(serviceName);
+        await this.gitService.reset(serviceName);
         break;
       default:
         const requestedTask = serviceObject.tasks.find((t) => t.name === task);

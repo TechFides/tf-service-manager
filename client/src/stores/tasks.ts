@@ -103,5 +103,8 @@ export const useTasksStore = defineStore({
         npmScript,
       });
     },
+    async resetAllServices() {
+      await axios.post(SM_BACKEND_URL + "/run/reset-all-services");
+    },
   },
 });

@@ -75,12 +75,21 @@ export class AppController {
   }
 
   @Post('run/task')
-  runTask(@Body() dto: RunTaskDto): string {
-    return this.commandService.runTask(dto.task, dto.service, dto.attributes);
+  async runTask(@Body() dto: RunTaskDto): Promise<string> {
+    return await this.commandService.runTask(
+      dto.task,
+      dto.service,
+      dto.attributes,
+    );
   }
 
   @Post('run/npm-script')
   runNpmScript(@Body() dto: RunNpmScriptDto): string {
     return this.commandService.runNpmScript(dto.service, dto.npmScript);
+  }
+
+  @Post('run/reset-all-services')
+  async runResetAllServices(): Promise<string> {
+    return await this.servicesService.resetAllServices();
   }
 }
