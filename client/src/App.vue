@@ -146,6 +146,7 @@ import { SM_BACKEND_URL } from "@/config";
 import { useTasksStore } from "@/stores/tasks";
 import ServiceRunStatus from "@/components/ServiceRunStatus.vue";
 import { useSettingsStore } from "./stores/settings";
+import { useResetStore } from "@/stores/resetToDefaultsStore";
 
 const leftDrawerOpen = ref(false);
 const homeView = ref();
@@ -163,6 +164,7 @@ tasksStore.getAllBranchTasks();
 
 const logsStore = useLogsStore();
 const servicesStore = useServicesStore();
+const resetDefaultsStore = useResetStore();
 servicesStore.getAllServices().then(() => {
   if (homeView.value.updateCustomTasksForSelected !== undefined) {
     const settingsStore = useSettingsStore();
@@ -186,11 +188,13 @@ socket.on("message", (msg) => {
       );
     }
   } else if (msg.type === "reset-defaults-success") {
+    resetDefaultsStore.endReset();
     quasar.notify({
       type: "positive",
       message: "Reset to defaults was successful",
     });
   } else if (msg.type === "reset-defaults-error") {
+    resetDefaultsStore.endReset();
     quasar.notify({
       type: "negative",
       message: "Reset to defaults failed",

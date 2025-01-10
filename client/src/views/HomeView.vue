@@ -10,7 +10,11 @@
               <div class="text-h6">Services Status</div>
               <q-btn
                 flat
-                label="Reset all to default"
+                :label="
+                  resetInProgress ? 'Resetting...' : 'Reset all to default'
+                "
+                :disable="resetInProgress"
+                :icon="resetInProgress ? 'hourglass_empty' : ''"
                 class="q-mr-sm"
                 @click="openConfirmDialog"
               />
@@ -205,7 +209,7 @@
         <pipeline-status :services="servicesStore.services" />
       </div>
     </div>
-    <ConfirmDialog ref="refConfirmDialog" />
+    <ConfirmDialog ref="refConfirmResetAllDialog" />
   </q-page>
 </template>
 <script setup lang="ts">
@@ -224,6 +228,7 @@ import BranchChip from "@/components/chips/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
 import ConfirmDialog from "@/components/confirmDialog/ConfirmDialog.vue";
 import type { ConfirmDialogParams } from "@/components/confirmDialog/confirmDialogParams";
+import { useResetStore } from "@/stores/resetToDefaultsStore";
 
 const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];
 
@@ -234,7 +239,9 @@ const isGitTask = (task: Task): boolean => {
 const servicesStore = useServicesStore();
 const tasksStore = useTasksStore();
 const settingStore = useSettingsStore();
-const refConfirmDialog = ref(ConfirmDialog);
+const resetToDefaultsStore = useResetStore();
+const refConfirmResetAllDialog = ref(ConfirmDialog);
+const resetInProgress = computed(() => resetToDefaultsStore.isResetting);
 const serviceStatusColumns = computed((): QTableProps["columns"] => {
   const columns: QTableProps["columns"] = [
     {
@@ -334,12 +341,21 @@ const alwaysEnableTask = (): boolean => {
 };
 
 const openConfirmDialog = (): void => {
+  if (resetToDefaultsStore.isResetting) {
+    return;
+  }
+
   const params: ConfirmDialogParams = {
     title: "Reset all to defaults? This may cause local data loss",
-    confirmAction: tasksStore.resetAllServices,
+    confirmAction: startResetToDefaults,
   };
 
-  refConfirmDialog.value.showDialog(params);
+  refConfirmResetAllDialog.value.showDialog(params);
+};
+
+const startResetToDefaults = () => {
+  resetToDefaultsStore.startReset();
+  tasksStore.resetAllServices();
 };
 
 defineExpose({
