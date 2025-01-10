@@ -174,33 +174,46 @@ servicesStore.getAllServices().then(() => {
 servicesStore.getAllServicesStatus();
 
 const socket = io(SM_BACKEND_URL);
+
 socket.on("message", (msg) => {
-  if (msg.type === "log") {
-    logsStore.addLogs(msg.data);
-  } else if (msg.type === "status-update") {
-    servicesStore.getAllServicesStatus();
-  } else if (msg.type === "monitor-stats") {
-    for (const monitor of msg.data) {
-      servicesStore.addServiceMonitorData(
-        monitor.service,
-        monitor.cpuPercent,
-        monitor.memoryMegaBytes,
-      );
-    }
-  } else if (msg.type === "reset-defaults-success") {
-    resetDefaultsStore.endReset();
-    quasar.notify({
-      type: "positive",
-      message: "Reset to defaults was successful",
-    });
-  } else if (msg.type === "reset-defaults-error") {
-    resetDefaultsStore.endReset();
-    quasar.notify({
-      type: "negative",
-      message: "Reset to defaults failed",
-    });
-  } else {
-    console.error("Unknown message type from WS");
+  switch (msg.type) {
+    case "log":
+      logsStore.addLogs(msg.data);
+      break;
+
+    case "status-update":
+      servicesStore.getAllServicesStatus();
+      break;
+
+    case "monitor-stats":
+      for (const monitor of msg.data) {
+        servicesStore.addServiceMonitorData(
+          monitor.service,
+          monitor.cpuPercent,
+          monitor.memoryMegaBytes,
+        );
+      }
+      break;
+
+    case "reset-defaults-success":
+      resetDefaultsStore.endReset();
+      quasar.notify({
+        type: "positive",
+        message: "Reset to defaults was successful",
+      });
+      break;
+
+    case "reset-defaults-error":
+      resetDefaultsStore.endReset();
+      quasar.notify({
+        type: "negative",
+        message: "Reset to defaults failed",
+      });
+      break;
+
+    default:
+      console.error("Unknown message type from WS");
+      break;
   }
 });
 
