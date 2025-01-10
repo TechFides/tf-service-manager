@@ -6,7 +6,17 @@
       <div class="col-12">
         <q-card flat>
           <q-card-section>
-            <div class="text-h6">Services Status</div>
+            <div class="services-status-container q-gutter-sm">
+              <div class="text-h6">Services Status</div>
+              <q-btn
+                unelevated
+                color="negative"
+                :loading="resetInProgress"
+                label="reset all to defaults"
+                :disable="resetInProgress"
+                @click="openConfirmDefaultsResetDialog"
+              />
+            </div>
           </q-card-section>
           <q-separator />
           <q-card-section>
@@ -197,6 +207,7 @@
         <pipeline-status :services="servicesStore.services" />
       </div>
     </div>
+    <ConfirmDialog ref="refConfirmResetAllDialog" />
   </q-page>
 </template>
 <script setup lang="ts">
@@ -213,6 +224,9 @@ import CpuUsageChart from "@/components/charts/CpuUsageChart.vue";
 import MemoryUsageChart from "@/components/charts/MemoryUsageChart.vue";
 import BranchChip from "@/components/chips/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
+import ConfirmDialog from "@/components/confirmDialog/ConfirmDialog.vue";
+import type { ConfirmDialogParams } from "@/components/confirmDialog/confirmDialogParams";
+import { useResetStore } from "@/stores/resetToDefaultsStore";
 
 const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];
 
@@ -223,6 +237,9 @@ const isGitTask = (task: Task): boolean => {
 const servicesStore = useServicesStore();
 const tasksStore = useTasksStore();
 const settingStore = useSettingsStore();
+const resetToDefaultsStore = useResetStore();
+const refConfirmResetAllDialog = ref(ConfirmDialog);
+const resetInProgress = computed(() => resetToDefaultsStore.isResetting);
 const serviceStatusColumns = computed((): QTableProps["columns"] => {
   const columns: QTableProps["columns"] = [
     {
@@ -321,6 +338,24 @@ const alwaysEnableTask = (): boolean => {
   return false; // used in `disable` so to enable, we must return false
 };
 
+const openConfirmDefaultsResetDialog = (): void => {
+  if (resetToDefaultsStore.isResetting) {
+    return;
+  }
+
+  const params: ConfirmDialogParams = {
+    title: "Reset all to defaults? This may cause local data loss",
+    confirmAction: startResetToDefaults,
+  };
+
+  refConfirmResetAllDialog.value.showDialog(params);
+};
+
+const startResetToDefaults = () => {
+  resetToDefaultsStore.startReset();
+  tasksStore.resetAllServices();
+};
+
 defineExpose({
   updateCustomTasksForSelected,
 });
@@ -332,5 +367,11 @@ defineExpose({
 
 .ga-1 {
   gap: 1rem;
+}
+
+.services-status-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 </style>

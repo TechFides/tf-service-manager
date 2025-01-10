@@ -7,6 +7,7 @@ import * as waitOn from 'wait-on';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { ConfigService } from '@nestjs/config';
 import * as console from 'node:console';
+import { CommandService } from './command.service';
 
 export enum ServiceRunStatus {
   RUNNING = 'RUNNING',

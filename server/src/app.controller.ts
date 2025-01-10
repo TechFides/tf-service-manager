@@ -10,6 +10,8 @@ import { RunNpmScriptDto } from './dto/run-npm-script.dto';
 import { BranchTasksDto } from './dto/branch-task.dto';
 import { NpmAuditService } from './services/npm-audit.service';
 import { NpmAutofixDto } from './dto/npm-autofix.dto';
+import { ResetDefaultsService } from './services/reset-defaults.service';
+import * as console from 'node:console';
 
 @Controller()
 export class AppController {
@@ -18,6 +20,7 @@ export class AppController {
     private readonly servicesService: ServicesService,
     private readonly commandService: CommandService,
     private readonly npmAuditService: NpmAuditService,
+    private readonly resetDefaultsService: ResetDefaultsService,
   ) {}
 
   @Get()
@@ -75,12 +78,25 @@ export class AppController {
   }
 
   @Post('run/task')
-  runTask(@Body() dto: RunTaskDto): string {
-    return this.commandService.runTask(dto.task, dto.service, dto.attributes);
+  async runTask(@Body() dto: RunTaskDto): Promise<string> {
+    return await this.commandService.runTask(
+      dto.task,
+      dto.service,
+      dto.attributes,
+    );
   }
 
   @Post('run/npm-script')
   runNpmScript(@Body() dto: RunNpmScriptDto): string {
     return this.commandService.runNpmScript(dto.service, dto.npmScript);
+  }
+
+  @Post('run/reset-all-services')
+  async runResetAllServices(
+    @Body() body: { gitCheckoutType: string },
+  ): Promise<string> {
+    return await this.resetDefaultsService.resetAllServices(
+      body.gitCheckoutType,
+    );
   }
 }

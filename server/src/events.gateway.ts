@@ -179,4 +179,18 @@ export class EventsGateway {
       data: data,
     });
   }
+
+  sendResetDefaultsSuccess(): void {
+    this.server.send({
+      type: 'reset-defaults-success',
+      data: {},
+    });
+  }
+
+  sendResetDefaultsError(message: string): void {
+    this.server.send({
+      type: 'reset-defaults-error',
+      message,
+    });
+  }
 }

@@ -146,6 +146,7 @@ import { SM_BACKEND_URL } from "@/config";
 import { useTasksStore } from "@/stores/tasks";
 import ServiceRunStatus from "@/components/ServiceRunStatus.vue";
 import { useSettingsStore } from "./stores/settings";
+import { useResetStore } from "@/stores/resetToDefaultsStore";
 
 const leftDrawerOpen = ref(false);
 const homeView = ref();
@@ -163,6 +164,7 @@ tasksStore.getAllBranchTasks();
 
 const logsStore = useLogsStore();
 const servicesStore = useServicesStore();
+const resetDefaultsStore = useResetStore();
 servicesStore.getAllServices().then(() => {
   if (homeView.value.updateCustomTasksForSelected !== undefined) {
     const settingsStore = useSettingsStore();
@@ -172,21 +174,46 @@ servicesStore.getAllServices().then(() => {
 servicesStore.getAllServicesStatus();
 
 const socket = io(SM_BACKEND_URL);
+
 socket.on("message", (msg) => {
-  if (msg.type === "log") {
-    logsStore.addLogs(msg.data);
-  } else if (msg.type === "status-update") {
-    servicesStore.getAllServicesStatus();
-  } else if (msg.type === "monitor-stats") {
-    for (const monitor of msg.data) {
-      servicesStore.addServiceMonitorData(
-        monitor.service,
-        monitor.cpuPercent,
-        monitor.memoryMegaBytes,
-      );
-    }
-  } else {
-    console.error("Unknown message type from WS");
+  switch (msg.type) {
+    case "log":
+      logsStore.addLogs(msg.data);
+      break;
+
+    case "status-update":
+      servicesStore.getAllServicesStatus();
+      break;
+
+    case "monitor-stats":
+      for (const monitor of msg.data) {
+        servicesStore.addServiceMonitorData(
+          monitor.service,
+          monitor.cpuPercent,
+          monitor.memoryMegaBytes,
+        );
+      }
+      break;
+
+    case "reset-defaults-success":
+      resetDefaultsStore.endReset();
+      quasar.notify({
+        type: "positive",
+        message: "Reset to defaults was successful",
+      });
+      break;
+
+    case "reset-defaults-error":
+      resetDefaultsStore.endReset();
+      quasar.notify({
+        type: "negative",
+        message: "Reset to defaults failed",
+      });
+      break;
+
+    default:
+      console.error("Unknown message type from WS");
+      break;
   }
 });
 

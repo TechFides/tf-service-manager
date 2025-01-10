@@ -103,5 +103,12 @@ export const useTasksStore = defineStore({
         npmScript,
       });
     },
+    async resetAllServices() {
+      const settingsStore = useSettingsStore();
+      const gitCheckoutType = settingsStore.gitCheckoutType;
+      await axios.post(SM_BACKEND_URL + `/run/reset-all-services`, {
+        gitCheckoutType: gitCheckoutType,
+      });
+    },
   },
 });

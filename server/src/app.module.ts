@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { NpmAuditService } from './services/npm-audit.service';
 import { GitService } from './services/git.service';
+import { ResetDefaultsService } from './services/reset-defaults.service';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { GitService } from './services/git.service';
     MonitorService,
     NpmAuditService,
     GitService,
+    ResetDefaultsService,
   ],
 })
 export class AppModule {}
