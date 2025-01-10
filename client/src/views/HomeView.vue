@@ -12,7 +12,7 @@
                 flat
                 label="Reset all to default"
                 class="q-mr-sm"
-                @click="resetAllToDefault"
+                @click="openConfirmDialog"
               />
             </div>
           </q-card-section>
@@ -205,6 +205,7 @@
         <pipeline-status :services="servicesStore.services" />
       </div>
     </div>
+    <ConfirmDialog ref="refConfirmDialog" />
   </q-page>
 </template>
 <script setup lang="ts">
@@ -221,6 +222,8 @@ import CpuUsageChart from "@/components/charts/CpuUsageChart.vue";
 import MemoryUsageChart from "@/components/charts/MemoryUsageChart.vue";
 import BranchChip from "@/components/chips/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
+import ConfirmDialog from "@/components/confirmDialog/ConfirmDialog.vue";
+import type { ConfirmDialogParams } from "@/components/confirmDialog/confirmDialogParams";
 
 const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];
 
@@ -231,6 +234,7 @@ const isGitTask = (task: Task): boolean => {
 const servicesStore = useServicesStore();
 const tasksStore = useTasksStore();
 const settingStore = useSettingsStore();
+const refConfirmDialog = ref(ConfirmDialog);
 const serviceStatusColumns = computed((): QTableProps["columns"] => {
   const columns: QTableProps["columns"] = [
     {
@@ -327,6 +331,15 @@ const disableTaskBasedOnRunState = (task: Task, service: string): boolean => {
 };
 const alwaysEnableTask = (): boolean => {
   return false; // used in `disable` so to enable, we must return false
+};
+
+const openConfirmDialog = (): void => {
+  const params: ConfirmDialogParams = {
+    title: "Reset all to defaults? This may cause local data loss",
+    confirmAction: tasksStore.resetAllServices,
+  };
+
+  refConfirmDialog.value.showDialog(params);
 };
 
 const resetAllToDefault = (): void => {
