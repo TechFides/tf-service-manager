@@ -185,6 +185,16 @@ socket.on("message", (msg) => {
         monitor.memoryMegaBytes,
       );
     }
+  } else if (msg.type === "reset-defaults-success") {
+    quasar.notify({
+      type: "positive",
+      message: "Reset to defaults was successful",
+    });
+  } else if (msg.type === "reset-defaults-error") {
+    quasar.notify({
+      type: "negative",
+      message: "Reset to defaults failed",
+    });
   } else {
     console.error("Unknown message type from WS");
   }

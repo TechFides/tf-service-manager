@@ -93,9 +93,8 @@ export class AppController {
 
   @Post('run/reset-all-services')
   async runResetAllServices(
-    @Body() body: { gitCheckoutType: string }, // Read it from the body
+    @Body() body: { gitCheckoutType: string },
   ): Promise<string> {
-    console.log(body.gitCheckoutType); // Extract and log the variable
     return await this.resetDefaultsService.resetAllServices(
       body.gitCheckoutType,
     );

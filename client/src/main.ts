@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
-import { Quasar } from "quasar";
+import { Notify, Quasar } from "quasar";
 
 // Import icon libraries
 import "@quasar/extras/material-icons/material-icons.css";
@@ -38,7 +38,7 @@ import router from "./router";
 const app = createApp(App);
 app.component("v-chart", ECharts);
 app.use(Quasar, {
-  plugins: {}, // import Quasar plugins and add here
+  plugins: { Notify }, // import Quasar plugins and add here
 });
 
 const pinia = createPinia();

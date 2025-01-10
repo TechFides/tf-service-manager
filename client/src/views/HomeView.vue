@@ -342,10 +342,6 @@ const openConfirmDialog = (): void => {
   refConfirmDialog.value.showDialog(params);
 };
 
-const resetAllToDefault = (): void => {
-  tasksStore.resetAllServices();
-};
-
 defineExpose({
   updateCustomTasksForSelected,
 });

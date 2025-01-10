@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CommandService, DefaultTask } from './command.service';
 import { BaseService, ServicesService } from './services.service';
+import { EventsGateway } from '../events.gateway';
 
 @Injectable()
 export class ResetDefaultsService {
@@ -10,16 +11,23 @@ export class ResetDefaultsService {
   constructor(
     private readonly commandService: CommandService,
     private readonly servicesService: ServicesService,
+    private readonly eventsGateway: EventsGateway,
   ) {}
 
   async resetAllServices(gitCheckoutType: string): Promise<string> {
-    const services = this.servicesService.getServices();
-    const promises = services.map((service) => {
-      this.resetService(service, gitCheckoutType);
-    });
+    try {
+      const services = this.servicesService.getServices();
+      const promises = services.map((service) =>
+        this.resetService(service, gitCheckoutType),
+      );
 
-    await Promise.all(promises);
-    return 'OK';
+      await Promise.all(promises);
+      this.eventsGateway.sendResetDefaultsSuccess();
+      return 'OK';
+    } catch (error) {
+      this.eventsGateway.sendResetDefaultsError(error);
+      throw error;
+    }
   }
 
   async resetService(
