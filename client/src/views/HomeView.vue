@@ -9,14 +9,12 @@
             <div class="services-status-container q-gutter-sm">
               <div class="text-h6">Services Status</div>
               <q-btn
-                flat
-                :label="
-                  resetInProgress ? 'Resetting...' : 'Reset all to default'
-                "
+                unelevated
+                color="negative"
+                :loading="resetInProgress"
+                label="reset all to defaults"
                 :disable="resetInProgress"
-                :icon="resetInProgress ? 'hourglass_empty' : ''"
-                class="q-mr-sm"
-                @click="openConfirmDialog"
+                @click="openConfirmDefaultsResetDialog"
               />
             </div>
           </q-card-section>
@@ -340,7 +338,7 @@ const alwaysEnableTask = (): boolean => {
   return false; // used in `disable` so to enable, we must return false
 };
 
-const openConfirmDialog = (): void => {
+const openConfirmDefaultsResetDialog = (): void => {
   if (resetToDefaultsStore.isResetting) {
     return;
   }
