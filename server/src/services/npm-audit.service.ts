@@ -52,7 +52,7 @@ export class NpmAuditService {
       serviceName,
       cwd,
     );
-    await this.gitService.addAll(serviceName);
+    await this.gitService.addFiles(serviceName, ['package-lock.json']);
     await this.gitService.commit(
       serviceName,
       'npm audit autofix by tf-service-manager',
