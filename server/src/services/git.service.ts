@@ -226,9 +226,10 @@ export class GitService {
    * Adds all files in the current working directory to the specified service.
    *
    * @param {string} serviceName - The name of the service to add files to.
+   * @param {string[]} files - The names of files to add to commit
    * @returns {Promise<void>} - A Promise that resolves when the operation is completed.
    */
-  async addAll(serviceName: string): Promise<void> {
+  async addFiles(serviceName: string, files: string[]): Promise<void> {
     const service = this.servicesService
       .getServices()
       .find((s) => s.name === serviceName);
@@ -236,7 +237,7 @@ export class GitService {
       return;
     }
     const cwd = this.servicesService.getServicePath(serviceName);
-    const command = `git add .`;
+    const command = `git add ${files.join(' ')}`;
     await this.commandService.runCommandWithLog(
       command,
       serviceName,
