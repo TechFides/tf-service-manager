@@ -4,7 +4,7 @@ export class ServiceStatusDto {
   name: string;
   runStatus: ServiceRunStatus;
   cloned: boolean;
-  runningNpmScript: string;
+  runningScript: string;
   runningTasks: string[];
   currentGitBranch: string;
   currentGitBranchHasChanges: boolean;

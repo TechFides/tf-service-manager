@@ -7,12 +7,16 @@ import * as waitOn from 'wait-on';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { ConfigService } from '@nestjs/config';
 import * as console from 'node:console';
-import { CommandService } from './command.service';
 
 export enum ServiceRunStatus {
   RUNNING = 'RUNNING',
   PENDING = 'PENDING',
   STOPPED = 'STOPPED',
+}
+
+export enum PackageManager {
+  NPM = 'NPM',
+  PNPM = 'PNPM',
 }
 
 export interface BaseService {
@@ -22,6 +26,7 @@ export interface BaseService {
   npmRunLifecycle: string;
   gitUrl: string;
   appUrlSuffix: string;
+  packageManager: PackageManager; // povinné na runtime level
   genericTasks: string[];
   tasks: Task[];
   process?: ChildProcessWithoutNullStreams;
@@ -29,7 +34,7 @@ export interface BaseService {
     cpuPercent: number;
     memoryMegaBytes: number;
   };
-  runningNpmScript: string;
+  runningScript: string;
   runningTask: string;
   runningTasks: string[];
   port: number;
@@ -56,6 +61,7 @@ export interface BaseServiceConfig {
   port: number;
   appUrlSuffix: string;
   color: string; //see https://quasar.dev/style/color-palette#brand-colors
+  packageManager?: PackageManager; // optional for backward compatibility
   genericTasks?: string[];
   tasks?: Task[];
   defaultGitBranch?: string;
@@ -86,9 +92,10 @@ export class ServicesService {
     }
     for (const service of configService.get<BaseServiceConfig[]>('services')) {
       const baseService: BaseService = service as BaseService;
-      baseService.runningNpmScript = '';
+      baseService.runningScript = '';
       baseService.runningTask = '';
       baseService.runStatus = ServiceRunStatus.STOPPED;
+      baseService.packageManager = service.packageManager || PackageManager.NPM; // default NPM for backward compatibility
       baseService.monitorStats = {
         cpuPercent: 0,
         memoryMegaBytes: 0,
@@ -130,6 +137,7 @@ export class ServicesService {
         coverageBadge: `https://${service.gitUrl}/badges/develop/coverage.svg`,
         npmScripts: await this.getServiceNpmScripts(service.name),
         gitUrl: service.gitUrl,
+        packageManager: service.packageManager,
         tasks: tasks,
       });
     }
@@ -162,7 +170,7 @@ export class ServicesService {
         name: service.name,
         runStatus: service.runStatus,
         cloned: this.serviceIsCloned(service),
-        runningNpmScript: service.runningNpmScript,
+        runningScript: service.runningScript,
         runningTask: service.runningTask,
         runningTasks: service.runningTasks,
         currentGitBranch: service.currentGitBranch,
@@ -211,8 +219,8 @@ export class ServicesService {
       });
   }
 
-  setServiceRunningNpmScript(service: string, npmScript: string): void {
-    this.services.find((s) => s.name === service).runningNpmScript = npmScript;
+  setServiceRunningScript(service: string, script: string): void {
+    this.services.find((s) => s.name === service).runningScript = script;
   }
 
   setServiceRunningTask(service: string, task: string): void {

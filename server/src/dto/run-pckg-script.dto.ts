@@ -1,9 +1,9 @@
 import { IsString } from 'class-validator';
 
-export class RunNpmScriptDto {
+export class RunPckgScriptDto {
   @IsString()
   service: string;
 
   @IsString()
-  npmScript: string;
+  script: string;
 }

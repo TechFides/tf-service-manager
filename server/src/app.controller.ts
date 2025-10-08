@@ -6,7 +6,7 @@ import { CommandService } from './services/command.service';
 import { RunTaskDto } from './dto/run-task.dto';
 import { ServicesStatusDto } from './dto/service-status.dto';
 import { ServicesService } from './services/services.service';
-import { RunNpmScriptDto } from './dto/run-npm-script.dto';
+import { RunPckgScriptDto } from './dto/run-pckg-script.dto';
 import { BranchTasksDto } from './dto/branch-task.dto';
 import { NpmAuditService } from './services/npm-audit.service';
 import { NpmAutofixDto } from './dto/npm-autofix.dto';
@@ -86,9 +86,9 @@ export class AppController {
     );
   }
 
-  @Post('run/npm-script')
-  runNpmScript(@Body() dto: RunNpmScriptDto): string {
-    return this.commandService.runNpmScript(dto.service, dto.npmScript);
+  @Post('run/pckg-script')
+  runPckgScript(@Body() dto: RunPckgScriptDto): string {
+    return this.commandService.runPckgScript(dto.service, dto.script);
   }
 
   @Post('run/reset-all-services')

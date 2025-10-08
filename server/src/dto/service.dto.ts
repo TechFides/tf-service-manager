@@ -1,4 +1,4 @@
-import { ServiceRunStatus } from '../services/services.service';
+import { ServiceRunStatus, PackageManager } from '../services/services.service';
 
 export class ServiceDto {
   name: string;
@@ -8,6 +8,7 @@ export class ServiceDto {
   pipelineBadge: string;
   npmScripts: string[];
   gitUrl: string;
+  packageManager: PackageManager;
   tasks: TaskDto[];
 }
 
