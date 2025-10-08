@@ -36,7 +36,7 @@ export class ResetDefaultsService {
   ): Promise<string> {
     await this.resetServiceGit(service.name, gitCheckoutType);
     await this.commandService.runTask(
-      DefaultTask.NPM_INSTALL,
+      DefaultTask.INSTALL,
       service.name,
       {},
     );

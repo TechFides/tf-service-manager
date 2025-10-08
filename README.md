@@ -53,6 +53,7 @@ The file has the following format:
       "port": 3000,
       "appUrlSuffix": "api-docs",
       "color": "teal-9",
+      "packageManager": "NPM",
       "genericTasks": [
         "COPY_ENV"
       ],

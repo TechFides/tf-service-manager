@@ -15,8 +15,8 @@ export enum ServiceRunStatus {
 }
 
 export enum PackageManager {
-  NPM = 'NPM',
-  PNPM = 'PNPM',
+  NPM = 'npm',
+  PNPM = 'pnpm',
 }
 
 export interface BaseService {
@@ -95,7 +95,7 @@ export class ServicesService {
       baseService.runningScript = '';
       baseService.runningTask = '';
       baseService.runStatus = ServiceRunStatus.STOPPED;
-      baseService.packageManager = service.packageManager || PackageManager.NPM; // default NPM for backward compatibility
+      baseService.packageManager = service.packageManager?.toLowerCase() as PackageManager || PackageManager.NPM; // default NPM for backward compatibility
       baseService.monitorStats = {
         cpuPercent: 0,
         memoryMegaBytes: 0,
