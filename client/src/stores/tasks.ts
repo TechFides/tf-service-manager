@@ -97,10 +97,10 @@ export const useTasksStore = defineStore({
         attributes,
       });
     },
-    async runNpmScript(service: string, npmScript: string) {
-      await axios.post(SM_BACKEND_URL + "/run/npm-script", {
+    async runPckgScript(service: string, script: string) {
+      await axios.post(SM_BACKEND_URL + "/run/pckg-script", {
         service,
-        npmScript,
+        script,
       });
     },
     async resetAllServices() {

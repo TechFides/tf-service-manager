@@ -23,7 +23,7 @@
             color="primary"
             label="npm scripts"
             :menu-offset="[40, 3]"
-            :disable="serviceStatus.runningNpmScript !== ''"
+            :disable="serviceStatus.runningScript !== ''"
             unelevated
           >
             <q-list>
@@ -35,7 +35,7 @@
                 clickable
                 v-close-popup
                 dense
-                @click="runNpmScript(npmScript, route.params.name)"
+                @click="runPckgScript(npmScript, route.params.name)"
               >
                 <q-item-section>
                   <q-item-label>{{ npmScript }}</q-item-label>
@@ -46,14 +46,14 @@
           <q-chip
             color="grey-8"
             square
-            v-if="serviceStatus.runningNpmScript !== ''"
+            v-if="serviceStatus.runningScript !== ''"
           >
             <q-spinner-hourglass
               color="white"
               size="17px"
               class="q-mr-md"
-            />Running npm script:
-            {{ serviceStatus.runningNpmScript }}
+            />Running script:
+            {{ serviceStatus.runningScript }}
           </q-chip>
           <q-space />
           <q-btn
@@ -128,9 +128,9 @@ const runTask = (task: string, service: string) => {
   tasksStore.runTask(task, service);
 };
 
-const runNpmScript = (scriptName: string, service: string) => {
+const runPckgScript = (scriptName: string, service: string) => {
   console.log(`running ${scriptName} on ${service}`);
-  tasksStore.runNpmScript(service, scriptName);
+  tasksStore.runPckgScript(service, scriptName);
 };
 
 const clearLogs = () => {

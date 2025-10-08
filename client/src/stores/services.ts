@@ -19,12 +19,13 @@ export interface Service {
   vulnerabilities?: VulnerabilityCount;
   npmScripts?: string[];
   gitUrl: string;
+  packageManager?: string;
 }
 export interface ServiceStatus {
   name: string;
   cloned: boolean;
   runStatus: string;
-  runningNpmScript: string;
+  runningScript: string;
   runningTask: string;
   currentGitBranch: string;
   currentGitBranchHasChanges: boolean;
