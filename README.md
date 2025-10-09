@@ -122,7 +122,7 @@ Tasks consist of the following configuration options
 ### Default Tasks
 - `GIT_CLONE` - clones repo to `services_directory` directory
 - `REMOVE_SERVERI` - deletes service from filesystem, ⚠️ un-pushed changes wil be lost ⚠️
-- `INSTALL` - runs `npm i` or `pnpm i`
+- `INSTALL` - runs `npm i` or `pnpm i` or `yarn install`
 - `START_SERVICE` - runs `npm run ${npmRunLifecycle}`, see service configuration
 - `STOP_SERVER` - kills process created by `START_SERVICE`
 
@@ -142,6 +142,7 @@ You can specify multiple special sequences that will be replaced based on the op
 - `%{rm}` - delete command for the operating system
 - `%{npmCommand}` - NPM command for the operating system
 - `%{pnpmCommand}` - PNPM command for the operating system
+- `%{yarnCommand}` - YARN command for the operating system
 - `%{packageManagerCommand}` - Package manager command for the operating system (uses packaged manager defined in service config or default NPM)
 - `%{service}` - service name
 

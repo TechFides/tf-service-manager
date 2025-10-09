@@ -133,6 +133,7 @@ const ensureDirectory = (directory: string): boolean => {
 export class CommandService {
   private readonly npmCommand: string;
   private readonly pnpmCommand: string;
+  private readonly yarnCommand: string;
   private readonly rmCommand: string;
   private readonly servicesDirectory: string;
   constructor(
@@ -143,6 +144,7 @@ export class CommandService {
   ) {
     this.npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     this.pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+    this.yarnCommand = process.platform === 'win32' ? 'yarn.cmd' : 'yarn';
     this.rmCommand =
       process.platform === 'win32'
         ? `Remove-Item -Recurse -Force -Path`
@@ -174,6 +176,8 @@ export class CommandService {
         return this.npmCommand;
       case PackageManager.PNPM:
         return this.pnpmCommand;
+      case PackageManager.YARN:
+        return this.yarnCommand;
       default:
         return this.npmCommand; // fallback to NPM
     }
@@ -248,7 +252,7 @@ export class CommandService {
        *******************************************************/
       case DefaultTask.INSTALL:
         const packageManagerCommand = this.getPackageManagerCommand(serviceName);
-          command = `${packageManagerCommand} install`;
+        command = `${packageManagerCommand} install`;
         
         await this.runProcess(task, command, '', serviceName, cwd).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
@@ -378,6 +382,7 @@ export class CommandService {
     command = command.replace('%{rm}', this.rmCommand);
     command = command.replace('%{npmCommand}', this.npmCommand);
     command = command.replace('%{pnpmCommand}', this.pnpmCommand);
+    command = command.replace('%{yarnCommand}', this.yarnCommand);
     command = command.replace('%{packageManagerCommand}', this.getPackageManagerCommand(service.name));
     command = command.replace('%{service}', service.name);
     const cwd = this.servicesService.getServicePath(service.name);

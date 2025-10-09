@@ -31,6 +31,9 @@ export class PckgAuditService {
       case PackageManager.PNPM:
         command = `${packageManagerCommand} audit --json`;
         break;
+      case PackageManager.YARN:
+        command = `${packageManagerCommand} audit --json`;
+        break;
       default:
         throw new Error(`Audit not supported for package manager: ${service.packageManager}`);
     }
@@ -60,6 +63,11 @@ export class PckgAuditService {
     const cwd = this.servicesService.getServicePath(serviceName);
     const service = this.servicesService.getServices().find(s => s.name === serviceName);
     const packageManagerCommand = this.commandService.getPackageManagerCommand(serviceName);
+
+    // Check if autofix is supported
+    if (service.packageManager === PackageManager.YARN) {
+      throw new Error('Automatic audit fix is not supported for Yarn. Please fix vulnerabilities manually.');
+    }
 
     await this.gitService.createBranch(serviceName, dto.branch);
     await this.gitService.checkout(serviceName, dto.branch);
@@ -105,6 +113,6 @@ export class PckgAuditService {
    */
   isAuditFixSupported(serviceName: string): boolean {
     const service = this.servicesService.getServices().find(s => s.name === serviceName);
-    return true; // Currently supports all package managers with audit fix commands
+    return service.packageManager !== PackageManager.YARN;
   }
 }

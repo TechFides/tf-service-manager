@@ -17,6 +17,7 @@ export enum ServiceRunStatus {
 export enum PackageManager {
   NPM = 'npm',
   PNPM = 'pnpm',
+  YARN = 'yarn',
 }
 
 export interface BaseService {
