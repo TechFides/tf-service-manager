@@ -8,8 +8,8 @@ import { ServicesStatusDto } from './dto/service-status.dto';
 import { ServicesService } from './services/services.service';
 import { RunPckgScriptDto } from './dto/run-pckg-script.dto';
 import { BranchTasksDto } from './dto/branch-task.dto';
-import { NpmAuditService } from './services/npm-audit.service';
-import { NpmAutofixDto } from './dto/npm-autofix.dto';
+import { PckgAuditService } from './services/pckg-audit.service';
+import { PckgAutofixDto } from './dto/pckg-autofix.dto';
 import { ResetDefaultsService } from './services/reset-defaults.service';
 import * as console from 'node:console';
 
@@ -19,7 +19,7 @@ export class AppController {
     private readonly appService: AppService,
     private readonly servicesService: ServicesService,
     private readonly commandService: CommandService,
-    private readonly npmAuditService: NpmAuditService,
+    private readonly pckgAuditService: PckgAuditService,
     private readonly resetDefaultsService: ResetDefaultsService,
   ) {}
 
@@ -35,22 +35,22 @@ export class AppController {
     return serviceDto;
   }
 
-  @Get('/services/:serviceName/npm-audit')
-  async getNpmAuditForService(
+  @Get('/services/:serviceName/pckg-audit')
+  async getPckgAuditForService(
     @Param('serviceName') serviceName: string,
   ): Promise<string> {
-    const result = await this.npmAuditService.getNpmAuditForService(
+    const result = await this.pckgAuditService.getPackageAuditForService(
       serviceName,
     );
     return JSON.parse(result);
   }
 
-  @Post('/services/:serviceName/npm-audit-auto-fix')
-  async getNpmAuditAutFixForService(
+  @Post('/services/:serviceName/pckg-audit-auto-fix')
+  async getPckgAuditAutFixForService(
     @Param('serviceName') serviceName: string,
-    @Body() dto: NpmAutofixDto,
+    @Body() dto: PckgAutofixDto,
   ): Promise<string> {
-    return this.npmAuditService.npmAuditAutoFix(serviceName, dto);
+    return this.pckgAuditService.packageAuditAutoFix(serviceName, dto);
   }
 
   @Get('/services-status')

@@ -98,7 +98,7 @@ const branchName = ref<string>("");
 const showDialog = (params: NpmAuditDialogParams) => {
   if (params) {
     confirmAction = params.confirmAction;
-    branchName.value = `npm-audit-fix-${new Date()
+    branchName.value = `pckg-audit-fix-${new Date()
       .toISOString()
       .replaceAll(":", "-")
       .replaceAll(".", "-")}`;

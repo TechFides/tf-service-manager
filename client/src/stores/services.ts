@@ -148,7 +148,7 @@ export const useServicesStore = defineStore({
       if (service) {
         delete service.vulnerabilities;
         await axios.post(
-          SM_BACKEND_URL + `/services/${serviceName}/npm-audit-auto-fix`,
+          SM_BACKEND_URL + `/services/${serviceName}/pckg-audit-auto-fix`,
           params,
         );
       }
@@ -167,7 +167,7 @@ export const useServicesStore = defineStore({
       if (service && serviceStatus?.cloned) {
         delete service.vulnerabilities;
         const response = await axios.get(
-          SM_BACKEND_URL + `/services/${serviceName}/npm-audit`,
+          SM_BACKEND_URL + `/services/${serviceName}/pckg-audit`,
         );
         const data = response.data as NpmAuditOutput;
         service.vulnerabilities = data.metadata.vulnerabilities;
