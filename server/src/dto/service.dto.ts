@@ -6,7 +6,7 @@ export class ServiceDto {
   color: string;
   coverageBadge: string;
   pipelineBadge: string;
-  npmScripts: string[];
+  pckgScripts: string[];
   gitUrl: string;
   packageManager: PackageManager;
   tasks: TaskDto[];

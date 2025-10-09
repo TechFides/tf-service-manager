@@ -136,7 +136,7 @@ export class ServicesService {
         appUrl: `http://localhost:${service.port}/${service.appUrlSuffix}`,
         pipelineBadge: `https://${service.gitUrl}/badges/develop/pipeline.svg`,
         coverageBadge: `https://${service.gitUrl}/badges/develop/coverage.svg`,
-        npmScripts: await this.getServiceNpmScripts(service.name),
+        pckgScripts: await this.getServicePckgScripts(service.name),
         gitUrl: service.gitUrl,
         packageManager: service.packageManager,
         tasks: tasks,
@@ -182,7 +182,7 @@ export class ServicesService {
     });
   }
 
-  async getServiceNpmScripts(service: string): Promise<string[]> {
+  async getServicePckgScripts(service: string): Promise<string[]> {
     try {
       const packageJsonPath = path.resolve(
         `${this.servicesDirectory}/${service

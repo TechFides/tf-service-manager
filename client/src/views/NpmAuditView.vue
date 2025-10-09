@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md"
     ><q-card flat
-      ><q-card-section class="text-h4">Npm audit</q-card-section>
+      ><q-card-section class="text-h4">Package Audit</q-card-section>
 
       <q-separator />
       <q-card-section class="flex justify-end">
@@ -19,7 +19,7 @@
           <div>How autofix works?</div>
           <li>Creates new branch</li>
           <li>Checkouts created branch</li>
-          <li>Calls "npm audit fix"</li>
+          <li>Calls "npm audit fix" or "pnpm audit fix"</li>
           <li>Creates commit</li>
           <li>Calls "git push"</li>
           <template v-slot:action>
@@ -180,10 +180,10 @@ const columns: QTableProps["columns"] = [
 const servicesStore = useServicesStore();
 
 const refreshAudit = () => {
-  servicesStore.getNpmAuditForAllServices();
+  servicesStore.getPckgAuditForAllServices();
 };
 
-const doNpmAuditAutoFix = async (params: {
+const doPckgAuditAutoFix = async (params: {
   servicesToFix: string[];
   useForce: boolean;
   pushToOrigin: boolean;
@@ -200,7 +200,7 @@ const doNpmAuditAutoFix = async (params: {
       pushToOrigin: params.pushToOrigin,
     });
 
-    await servicesStore.getNpmAuditForService(service);
+    await servicesStore.getPckgAuditForService(service);
   }
   servicesStore.fixingVulnerabilities = false;
   servicesStore.loadingVulnerabilities = false;
@@ -208,7 +208,7 @@ const doNpmAuditAutoFix = async (params: {
 const refNpmAuditDialog = ref(NpmAuditDialog);
 const tryAutoFixButtonClick = async () => {
   refNpmAuditDialog.value.showDialog({
-    confirmAction: doNpmAuditAutoFix,
+    confirmAction: doPckgAuditAutoFix,
     servicesToFix: servicesStore.services.map((s) => {
       return {
         name: s.name,

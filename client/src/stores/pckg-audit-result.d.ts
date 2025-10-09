@@ -1,4 +1,4 @@
-interface NpmAuditOutput {
+interface PckgAuditOutput {
   auditReportVersion: number;
   vulnerabilities: Record<string, VulnerabilityDetails>;
   metadata: Metadata;
@@ -59,7 +59,7 @@ interface CvssDetails {
   vectorString: string;
 }
 export {
-  NpmAuditOutput,
+  PckgAuditOutput,
   Metadata,
   VulnerabilityCount,
   DependencyCount,

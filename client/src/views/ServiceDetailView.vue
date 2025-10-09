@@ -28,17 +28,17 @@
           >
             <q-list>
               <q-item
-                v-for="npmScript of servicesStore.getServiceByName(
+                v-for="pckgScript of servicesStore.getServiceByName(
                   route.params.name,
-                ).npmScripts"
-                v-bind:key="npmScript"
+                ).pckgScripts"
+                v-bind:key="pckgScript"
                 clickable
                 v-close-popup
                 dense
-                @click="runPckgScript(npmScript, route.params.name)"
+                @click="runPckgScript(pckgScript, route.params.name)"
               >
                 <q-item-section>
-                  <q-item-label>{{ npmScript }}</q-item-label>
+                  <q-item-label>{{ pckgScript }}</q-item-label>
                 </q-item-section>
               </q-item>
             </q-list>

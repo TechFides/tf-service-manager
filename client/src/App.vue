@@ -59,7 +59,7 @@
           </q-item-section>
           <q-item-section>
             <q-item-label class="text-weight-bolder text-capitalize"
-              >Npm audit</q-item-label
+              >Package Audit</q-item-label
             >
           </q-item-section>
         </q-item>
