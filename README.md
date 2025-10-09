@@ -152,10 +152,10 @@ if something goes wrong
 - kill (CTRL+C) and rerun `npm start`, its kills all nested processes
 
 # Gallery
-## Npm Audit page
+## Package Audit page
 ![npm-audit](./images/sm-npm-audit.png)
 
-## Npm audit fix dialog
+## Package audit fix dialog
 ![npm-audit-fix](./images/sm-npm-audit-fix.png)
 
 ## Service detail page
