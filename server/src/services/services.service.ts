@@ -62,7 +62,6 @@ export interface BaseServiceConfig {
   port: number;
   appUrlSuffix: string;
   color: string; //see https://quasar.dev/style/color-palette#brand-colors
-  packageManager?: PackageManager; // optional for backward compatibility
   genericTasks?: string[];
   tasks?: Task[];
   defaultGitBranch?: string;
@@ -81,22 +80,47 @@ const ensureTaskHasRequiredFields = (task: Task): void => {
   }
 };
 
+const detectPackageManager = (servicePath: string, serviceName: string): PackageManager => {
+  if (fs.existsSync(path.resolve(`${servicePath}/pnpm-lock.yaml`))) {
+    return PackageManager.PNPM;
+  } else if (fs.existsSync(path.resolve(`${servicePath}/yarn.lock`))) {
+    return PackageManager.YARN;
+  } else if (fs.existsSync(path.resolve(`${servicePath}/package-lock.json`))) {
+    return PackageManager.NPM;
+  } else {
+    console.log(
+      `No lock file found for service ${serviceName}, defaulting to npm`,
+    );
+    return PackageManager.NPM;
+  }
+};
+
 @Injectable()
 export class ServicesService {
   private readonly services: BaseService[] = [];
   private readonly genericTasks: Task[] = [];
   private readonly servicesDirectory: string;
+
   constructor(configService: ConfigService) {
     this.genericTasks = configService.get<Task[]>('generic_tasks');
+    const directory = configService.get<string>('services_directory');
+    if (path.isAbsolute(directory)) {
+      this.servicesDirectory = path.resolve(directory);
+    } else {
+      this.servicesDirectory = path.resolve(
+        `${__dirname}/../../../${directory}`,
+      );
+    }
+
     for (const task of this.genericTasks) {
       ensureTaskHasRequiredFields(task);
     }
+
     for (const service of configService.get<BaseServiceConfig[]>('services')) {
       const baseService: BaseService = service as BaseService;
       baseService.runningScript = '';
       baseService.runningTask = '';
       baseService.runStatus = ServiceRunStatus.STOPPED;
-      baseService.packageManager = service.packageManager?.toLowerCase() as PackageManager || PackageManager.NPM; // default NPM for backward compatibility
       baseService.monitorStats = {
         cpuPercent: 0,
         memoryMegaBytes: 0,
@@ -108,17 +132,14 @@ export class ServicesService {
         ensureTaskHasRequiredFields(task);
       }
       baseService.runningTasks = [];
+
+      // Autodetect package manager (this.servicesDirectory must be set before this line)
+      baseService.packageManager = detectPackageManager(this.getServicePath(service.name), service.name);
+
       this.services.push(service as BaseService);
     }
-    const directory = configService.get<string>('services_directory');
-    if (path.isAbsolute(directory)) {
-      this.servicesDirectory = path.resolve(directory);
-    } else {
-      this.servicesDirectory = path.resolve(
-        `${__dirname}/../../../${directory}`,
-      );
-    }
   }
+
   async getServicesDto(): Promise<ServiceDto[]> {
     const result = [];
     for (const service of this.services) {
