@@ -1,6 +1,6 @@
 import { IsBoolean, IsString } from 'class-validator';
 
-export class NpmAutofixDto {
+export class PckgAutofixDto {
   @IsString()
   branch = '';
 

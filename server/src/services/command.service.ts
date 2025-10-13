@@ -6,7 +6,7 @@ import * as kill from 'tree-kill';
 import * as fs from 'fs';
 
 import type { BaseService } from './services.service';
-import { ServiceRunStatus, ServicesService, Task } from './services.service';
+import { ServiceRunStatus, ServicesService, Task, PackageManager } from './services.service';
 import { TaskDto } from '../dto/service.dto';
 import { BranchTaskDto } from 'src/dto/branch-task.dto';
 import { runCommand } from 'src/utils/process';
@@ -19,7 +19,7 @@ export enum DefaultTask {
   GIT_RESET = 'GIT_RESET',
   GIT_CHECKOUT = 'GIT_CHECKOUT',
   REMOVE_SERVICE = 'REMOVE_SERVICE',
-  NPM_INSTALL = 'NPM_INSTALL',
+  INSTALL = 'INSTALL',
   START_SERVICE = 'START_SERVICE',
   STOP_SERVICE = 'STOP_SERVICE',
 }
@@ -76,7 +76,7 @@ export const baseTasks: Task[] = [
     icon: 'alt_route',
   },
   {
-    name: DefaultTask.NPM_INSTALL,
+    name: DefaultTask.INSTALL,
     command: '',
     runIfNotCloned: false,
     runIfRunStatusIs: [ServiceRunStatus.STOPPED],
@@ -132,6 +132,8 @@ const ensureDirectory = (directory: string): boolean => {
 @Injectable()
 export class CommandService {
   private readonly npmCommand: string;
+  private readonly pnpmCommand: string;
+  private readonly yarnCommand: string;
   private readonly rmCommand: string;
   private readonly servicesDirectory: string;
   constructor(
@@ -141,6 +143,8 @@ export class CommandService {
     configService: ConfigService,
   ) {
     this.npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    this.pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
+    this.yarnCommand = process.platform === 'win32' ? 'yarn.cmd' : 'yarn';
     this.rmCommand =
       process.platform === 'win32'
         ? `Remove-Item -Recurse -Force -Path`
@@ -152,6 +156,30 @@ export class CommandService {
       this.servicesDirectory = path.resolve(
         `${__dirname}/../../../${directory}`,
       );
+    }
+  }
+
+  /**
+   * Gets the appropriate package manager command for a service
+   *
+   * @param {string} serviceName - The name of the service
+   * @returns {string} - The package manager command
+   */
+  getPackageManagerCommand(serviceName: string): string {
+    const service = this.servicesService.getServices().find(s => s.name === serviceName);
+    if (!service) {
+      throw new Error(`Service ${serviceName} not found`);
+    }
+
+    switch (service.packageManager) {
+      case PackageManager.NPM:
+        return this.npmCommand;
+      case PackageManager.PNPM:
+        return this.pnpmCommand;
+      case PackageManager.YARN:
+        return this.yarnCommand;
+      default:
+        return this.npmCommand; // fallback to NPM
     }
   }
 
@@ -174,18 +202,19 @@ export class CommandService {
   }
 
   /**
-   * Executes an npm script for a given service.
+   * Executes a package manager script for a given service.
    *
    * @param {string} service - The name of the service.
-   * @param {string} npmScript - The name of the npm script to run.
+   * @param {string} script - The name of the script to run.
    * @returns {string} - Returns 'OK' if the script is successfully executed.
    */
-  runNpmScript(service: string, npmScript: string): string {
+  runPckgScript(service: string, script: string): string {
     const cwd = this.servicesService.getServicePath(service);
-    const command = `${this.npmCommand} run ${npmScript}`;
-    this.servicesService.setServiceRunningNpmScript(service, npmScript);
-    this.runProcess('__NPM_SCRIPT', command, '', service, cwd).then(() => {
-      this.servicesService.setServiceRunningNpmScript(service, '');
+    const packageManagerCommand = this.getPackageManagerCommand(service);
+    const command = `${packageManagerCommand} run ${script}`;
+    this.servicesService.setServiceRunningScript(service, script);
+    this.runProcess('__PCKG_SCRIPT', command, '', service, cwd).then(() => {
+      this.servicesService.setServiceRunningScript(service, '');
       this.eventsGateway.sendStatusUpdateToClient();
     });
     return 'OK';
@@ -219,10 +248,12 @@ export class CommandService {
 
     switch (task) {
       /**
-       * NPM_INSTALL
+       * INSTALL - automatically uses the correct package manager
        *******************************************************/
-      case DefaultTask.NPM_INSTALL:
-        command = `${this.npmCommand} i`;
+      case DefaultTask.INSTALL:
+        const packageManagerCommand = this.getPackageManagerCommand(serviceName);
+        command = `${packageManagerCommand} install`;
+        
         await this.runProcess(task, command, '', serviceName, cwd).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
@@ -233,7 +264,8 @@ export class CommandService {
        *******************************************************/
       case DefaultTask.START_SERVICE:
         this.servicesService.setServiceRunningTask(serviceName, task);
-        command = `${this.npmCommand} run ${serviceObject.npmRunLifecycle}`;
+        const startPackageManagerCommand = this.getPackageManagerCommand(serviceName);
+        command = `${startPackageManagerCommand} run ${serviceObject.npmRunLifecycle}`;
         this.servicesService.setServiceRunStatus(
           serviceName,
           ServiceRunStatus.PENDING,
@@ -349,6 +381,9 @@ export class CommandService {
     let command = task.command;
     command = command.replace('%{rm}', this.rmCommand);
     command = command.replace('%{npmCommand}', this.npmCommand);
+    command = command.replace('%{pnpmCommand}', this.pnpmCommand);
+    command = command.replace('%{yarnCommand}', this.yarnCommand);
+    command = command.replace('%{packageManagerCommand}', this.getPackageManagerCommand(service.name));
     command = command.replace('%{service}', service.name);
     const cwd = this.servicesService.getServicePath(service.name);
 

@@ -7,12 +7,17 @@ import * as waitOn from 'wait-on';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { ConfigService } from '@nestjs/config';
 import * as console from 'node:console';
-import { CommandService } from './command.service';
 
 export enum ServiceRunStatus {
   RUNNING = 'RUNNING',
   PENDING = 'PENDING',
   STOPPED = 'STOPPED',
+}
+
+export enum PackageManager {
+  NPM = 'npm',
+  PNPM = 'pnpm',
+  YARN = 'yarn',
 }
 
 export interface BaseService {
@@ -22,6 +27,7 @@ export interface BaseService {
   npmRunLifecycle: string;
   gitUrl: string;
   appUrlSuffix: string;
+  packageManager: PackageManager; // povinné na runtime level
   genericTasks: string[];
   tasks: Task[];
   process?: ChildProcessWithoutNullStreams;
@@ -29,7 +35,7 @@ export interface BaseService {
     cpuPercent: number;
     memoryMegaBytes: number;
   };
-  runningNpmScript: string;
+  runningScript: string;
   runningTask: string;
   runningTasks: string[];
   port: number;
@@ -74,19 +80,45 @@ const ensureTaskHasRequiredFields = (task: Task): void => {
   }
 };
 
+const detectPackageManager = (servicePath: string, serviceName: string): PackageManager => {
+  if (fs.existsSync(path.resolve(`${servicePath}/pnpm-lock.yaml`))) {
+    return PackageManager.PNPM;
+  } else if (fs.existsSync(path.resolve(`${servicePath}/yarn.lock`))) {
+    return PackageManager.YARN;
+  } else if (fs.existsSync(path.resolve(`${servicePath}/package-lock.json`))) {
+    return PackageManager.NPM;
+  } else {
+    console.log(
+      `No lock file found for service ${serviceName}, defaulting to npm`,
+    );
+    return PackageManager.NPM;
+  }
+};
+
 @Injectable()
 export class ServicesService {
   private readonly services: BaseService[] = [];
   private readonly genericTasks: Task[] = [];
   private readonly servicesDirectory: string;
+
   constructor(configService: ConfigService) {
     this.genericTasks = configService.get<Task[]>('generic_tasks');
+    const directory = configService.get<string>('services_directory');
+    if (path.isAbsolute(directory)) {
+      this.servicesDirectory = path.resolve(directory);
+    } else {
+      this.servicesDirectory = path.resolve(
+        `${__dirname}/../../../${directory}`,
+      );
+    }
+
     for (const task of this.genericTasks) {
       ensureTaskHasRequiredFields(task);
     }
+
     for (const service of configService.get<BaseServiceConfig[]>('services')) {
       const baseService: BaseService = service as BaseService;
-      baseService.runningNpmScript = '';
+      baseService.runningScript = '';
       baseService.runningTask = '';
       baseService.runStatus = ServiceRunStatus.STOPPED;
       baseService.monitorStats = {
@@ -100,17 +132,14 @@ export class ServicesService {
         ensureTaskHasRequiredFields(task);
       }
       baseService.runningTasks = [];
+
+      // Autodetect package manager (this.servicesDirectory must be set before this line)
+      baseService.packageManager = detectPackageManager(this.getServicePath(service.name), service.name);
+
       this.services.push(service as BaseService);
     }
-    const directory = configService.get<string>('services_directory');
-    if (path.isAbsolute(directory)) {
-      this.servicesDirectory = path.resolve(directory);
-    } else {
-      this.servicesDirectory = path.resolve(
-        `${__dirname}/../../../${directory}`,
-      );
-    }
   }
+
   async getServicesDto(): Promise<ServiceDto[]> {
     const result = [];
     for (const service of this.services) {
@@ -128,8 +157,9 @@ export class ServicesService {
         appUrl: `http://localhost:${service.port}/${service.appUrlSuffix}`,
         pipelineBadge: `https://${service.gitUrl}/badges/develop/pipeline.svg`,
         coverageBadge: `https://${service.gitUrl}/badges/develop/coverage.svg`,
-        npmScripts: await this.getServiceNpmScripts(service.name),
+        pckgScripts: await this.getServicePckgScripts(service.name),
         gitUrl: service.gitUrl,
+        packageManager: service.packageManager,
         tasks: tasks,
       });
     }
@@ -162,7 +192,7 @@ export class ServicesService {
         name: service.name,
         runStatus: service.runStatus,
         cloned: this.serviceIsCloned(service),
-        runningNpmScript: service.runningNpmScript,
+        runningScript: service.runningScript,
         runningTask: service.runningTask,
         runningTasks: service.runningTasks,
         currentGitBranch: service.currentGitBranch,
@@ -173,7 +203,7 @@ export class ServicesService {
     });
   }
 
-  async getServiceNpmScripts(service: string): Promise<string[]> {
+  async getServicePckgScripts(service: string): Promise<string[]> {
     try {
       const packageJsonPath = path.resolve(
         `${this.servicesDirectory}/${service
@@ -211,8 +241,8 @@ export class ServicesService {
       });
   }
 
-  setServiceRunningNpmScript(service: string, npmScript: string): void {
-    this.services.find((s) => s.name === service).runningNpmScript = npmScript;
+  setServiceRunningScript(service: string, script: string): void {
+    this.services.find((s) => s.name === service).runningScript = script;
   }
 
   setServiceRunningTask(service: string, task: string): void {

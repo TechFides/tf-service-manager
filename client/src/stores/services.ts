@@ -3,9 +3,9 @@ import axios from "axios";
 import { SM_BACKEND_URL } from "@/config";
 import type { Task } from "./tasks";
 import type {
-  NpmAuditOutput,
+  PckgAuditOutput,
   VulnerabilityCount,
-} from "@/stores/npm-audit-result";
+} from "@/stores/pckg-audit-result";
 
 export const MAX_MONITOR_HISTORY = 60;
 
@@ -17,14 +17,15 @@ export interface Service {
   pipelineBadge: string;
   tasks: Task[];
   vulnerabilities?: VulnerabilityCount;
-  npmScripts?: string[];
+  pckgScripts?: string[];
   gitUrl: string;
+  packageManager?: string;
 }
 export interface ServiceStatus {
   name: string;
   cloned: boolean;
   runStatus: string;
-  runningNpmScript: string;
+  runningScript: string;
   runningTask: string;
   currentGitBranch: string;
   currentGitBranchHasChanges: boolean;
@@ -86,7 +87,7 @@ export const useServicesStore = defineStore({
       this.services = services.map((service) => {
         return {
           ...service,
-          npmScripts: service.npmScripts ? service.npmScripts.sort() : [],
+          pckgScripts: service.pckgScripts ? service.pckgScripts.sort() : [],
         };
       });
       this.servicesMonitors = services.map((service) => {
@@ -109,27 +110,27 @@ export const useServicesStore = defineStore({
     },
 
     /**
-     * Get Npm audit for all services.
+     * Get pckg audit for all services.
      *
-     * @returns {Promise<void>} - A Promise that resolves when the Npm audit for all services is complete.
+     * @returns {Promise<void>} - A Promise that resolves when the pckg audit for all services is complete.
      */
-    async getNpmAuditForAllServices(): Promise<void> {
+    async getPckgAuditForAllServices(): Promise<void> {
       this.loadingVulnerabilities = true;
       for (const service of this.services) {
         delete service.vulnerabilities;
       }
       for (const service of this.services) {
-        await this.getNpmAuditForService(service.name);
+        await this.getPckgAuditForService(service.name);
       }
 
       this.loadingVulnerabilities = false;
     },
 
     /**
-     * Tries to automatically fix the npm audit issues for a given service.
+     * Tries to automatically fix the pckg audit issues for a given service.
      *
      * @param {string} serviceName - The name of the service.
-     * @param {object} params - The parameters for fixing the npm audit issues.
+     * @param {object} params - The parameters for fixing the pckg audit issues.
      * @param {string} params.branch - The branch to use for fixing the issues.
      * @param {boolean} params.useForce - Whether to force the fixes, even if it may cause breaking changes.
      * @param {boolean} params.pushToOrgin - Whether to push the fixed changes to the origin repository.
@@ -147,18 +148,18 @@ export const useServicesStore = defineStore({
       if (service) {
         delete service.vulnerabilities;
         await axios.post(
-          SM_BACKEND_URL + `/services/${serviceName}/npm-audit-auto-fix`,
+          SM_BACKEND_URL + `/services/${serviceName}/pckg-audit-auto-fix`,
           params,
         );
       }
     },
 
     /**
-     * Retrieves the npm audit information for a given service.
+     * Retrieves the pckg audit information for a given service.
      * @param {string} serviceName - The name of the service.
-     * @return {Promise<void>} - A promise that resolves when the npm audit information has been retrieved.
+     * @return {Promise<void>} - A promise that resolves when the pckg audit information has been retrieved.
      */
-    async getNpmAuditForService(serviceName: string): Promise<void> {
+    async getPckgAuditForService(serviceName: string): Promise<void> {
       const service = this.services.find((s) => s.name === serviceName);
       const serviceStatus = this.servicesStatus.find(
         (s) => s.name === serviceName,
@@ -166,10 +167,10 @@ export const useServicesStore = defineStore({
       if (service && serviceStatus?.cloned) {
         delete service.vulnerabilities;
         const response = await axios.get(
-          SM_BACKEND_URL + `/services/${serviceName}/npm-audit`,
+          SM_BACKEND_URL + `/services/${serviceName}/pckg-audit`,
         );
-        const data = response.data as NpmAuditOutput;
-        service.vulnerabilities = data.metadata.vulnerabilities;
+        const data = response.data as PckgAuditOutput;
+        service.vulnerabilities = data.metadata?.vulnerabilities;
       }
     },
 

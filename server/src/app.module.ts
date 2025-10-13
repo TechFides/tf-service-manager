@@ -8,7 +8,7 @@ import { MonitorService } from './services/monitor.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
-import { NpmAuditService } from './services/npm-audit.service';
+import { PckgAuditService } from './services/pckg-audit.service';
 import { GitService } from './services/git.service';
 import { ResetDefaultsService } from './services/reset-defaults.service';
 
@@ -26,7 +26,7 @@ import { ResetDefaultsService } from './services/reset-defaults.service';
     CommandService,
     ServicesService,
     MonitorService,
-    NpmAuditService,
+    PckgAuditService,
     GitService,
     ResetDefaultsService,
   ],
