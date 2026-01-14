@@ -19,6 +19,22 @@
           />
         </div>
       </q-card-section>
+
+      <q-separator />
+
+      <q-card-section>
+        <div class="text-h6">IDE Command</div>
+        <div class="q-gutter-sm q-pt-sm">
+          <q-input
+            v-model="settingsStore.ideCommand"
+            outlined
+            dense
+            label="Command to open IDE (e.g. code, webstorm)"
+            placeholder="code"
+            style="max-width: 400px"
+          />
+        </div>
+      </q-card-section>
     </q-card>
   </q-page>
 </template>

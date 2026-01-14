@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import axios from "axios";
 import { SM_BACKEND_URL } from "@/config";
 import type { Task } from "./tasks";
+import { useSettingsStore } from "./settings";
 import type {
   PckgAuditOutput,
   VulnerabilityCount,
@@ -191,6 +192,19 @@ export const useServicesStore = defineStore({
         serviceMonitor.memoryMegaBytes =
           serviceMonitor.memoryMegaBytes.slice(-MAX_MONITOR_HISTORY);
       }
+    },
+
+    /**
+     * Opens the service in the IDE.
+     *
+     * @param {string} serviceName - The name of the service.
+     * @return {Promise<void>} - A promise that resolves once the request has been made.
+     */
+    async openServiceInIde(serviceName: string): Promise<void> {
+      const settingsStore = useSettingsStore();
+      await axios.post(SM_BACKEND_URL + `/services/${serviceName}/ide`, {
+        ideCommand: settingsStore.ideCommand,
+      });
     },
   },
 });

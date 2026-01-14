@@ -160,6 +160,27 @@ export class CommandService {
   }
 
   /**
+   * Opens the service in an IDE.
+   *
+   * @param {string} serviceName - The name of the service to open.
+   * @param {string} [ideCommand] - The IDE command to use.
+   */
+  openInIde(serviceName: string, ideCommand?: string): void {
+    const cwd = this.servicesService.getServicePath(serviceName);
+    const command = ideCommand || process.env.LOCAL_IDE_COMMAND || 'code';
+    const subprocess = spawn(command, [cwd], {
+      detached: true,
+      stdio: 'ignore',
+      shell: true,
+    });
+    subprocess.unref();
+    this.eventsGateway.sendLogsToClient(
+      `Opening ${serviceName} in IDE (${command} ${cwd})`,
+      serviceName,
+    );
+  }
+
+  /**
    * Gets the appropriate package manager command for a service
    *
    * @param {string} serviceName - The name of the service

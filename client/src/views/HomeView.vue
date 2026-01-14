@@ -53,6 +53,17 @@
                     >
                   </q-td>
 
+                  <q-td key="ide" :props="props">
+                    <q-btn
+                      size="sm"
+                      color="grey-8"
+                      icon="code"
+                      @click="servicesStore.openServiceInIde(props.row.name)"
+                    >
+                      <q-tooltip>Open Project</q-tooltip>
+                    </q-btn>
+                  </q-td>
+
                   <q-td key="branch" :props="props" class="text-left">
                     <q-spinner-hourglass
                       v-if="
@@ -84,7 +95,7 @@
 
                   <q-td
                     v-bind:key="task.name"
-                    v-for="task of tasksStore.tasks"
+                    v-for="task of tasksStore.tasks.filter(t => !isGitTask(t))"
                     :props="props"
                   >
                     <q-spinner-hourglass
@@ -152,9 +163,10 @@
                     />
                     <span class="">Run for selected</span>
                   </q-td>
+                  <q-td></q-td>
                   <q-td class="flex ga-1">
                     <div
-                      class="text-center"
+                      class="row q-gutter-xs justify-center"
                       v-bind:key="task.name + index"
                       v-for="(task, index) of tasksStore.tasks"
                     >
@@ -246,6 +258,12 @@ const serviceStatusColumns = computed((): QTableProps["columns"] => {
       name: "name",
       label: "Name",
       align: "left",
+      field: (row) => row.name,
+    },
+    {
+      name: "ide",
+      label: "IDE",
+      align: "center",
       field: (row) => row.name,
     },
     {
