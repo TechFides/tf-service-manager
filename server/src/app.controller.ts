@@ -91,6 +91,14 @@ export class AppController {
     return this.commandService.runPckgScript(dto.service, dto.script);
   }
 
+  @Post('/services/:serviceName/ide')
+  openInIde(
+    @Param('serviceName') serviceName: string,
+    @Body() body: { ideCommand?: string },
+  ): void {
+    return this.commandService.openInIde(serviceName, body.ideCommand);
+  }
+
   @Post('run/reset-all-services')
   async runResetAllServices(
     @Body() body: { gitCheckoutType: string },

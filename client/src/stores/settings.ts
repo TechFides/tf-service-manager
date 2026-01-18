@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 interface SettingState {
   gitCheckoutType: string;
   selectedServices: string[];
+  ideCommand: string;
 }
 
 export const useSettingsStore = defineStore({
@@ -12,6 +13,7 @@ export const useSettingsStore = defineStore({
     ({
       gitCheckoutType: "ssh",
       selectedServices: [],
+      ideCommand: "code",
     }) as SettingState,
 
   getters: {},
