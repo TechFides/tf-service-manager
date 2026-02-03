@@ -6,8 +6,7 @@ interface SettingState {
   ideCommand: string;
 }
 
-export const useSettingsStore = defineStore({
-  id: "tf-sm-settings",
+export const useSettingsStore = defineStore("tf-sm-settings", {
   persist: true,
   state: () =>
     ({

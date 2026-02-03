@@ -19,8 +19,7 @@ interface LogsState {
   logs: ShallowRef<Log[]>;
 }
 
-export const useLogsStore = defineStore({
-  id: "tf-sm-logs",
+export const useLogsStore = defineStore("tf-sm-logs", {
   state: () =>
     ({
       logs: shallowRef<Log[]>([]),

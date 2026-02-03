@@ -48,8 +48,7 @@ interface ServiceState {
   fixingVulnerabilities: boolean;
 }
 
-export const useServicesStore = defineStore({
-  id: "tf-sm-services",
+export const useServicesStore = defineStore("tf-sm-services", {
   state: () =>
     ({
       services: [],

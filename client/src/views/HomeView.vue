@@ -95,7 +95,9 @@
 
                   <q-td
                     v-bind:key="task.name"
-                    v-for="task of tasksStore.tasks.filter(t => !isGitTask(t))"
+                    v-for="task of tasksStore.tasks.filter(
+                      (t) => !isGitTask(t),
+                    )"
                     :props="props"
                   >
                     <q-spinner-hourglass

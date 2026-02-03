@@ -2,11 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { spawn } from 'child_process';
 import { EventsGateway } from '../events.gateway';
 import * as path from 'path';
-import * as kill from 'tree-kill';
+import kill from 'tree-kill';
 import * as fs from 'fs';
 
 import type { BaseService } from './services.service';
-import { ServiceRunStatus, ServicesService, Task, PackageManager } from './services.service';
+import {
+  ServiceRunStatus,
+  ServicesService,
+  Task,
+  PackageManager,
+} from './services.service';
 import { TaskDto } from '../dto/service.dto';
 import { BranchTaskDto } from 'src/dto/branch-task.dto';
 import { runCommand } from 'src/utils/process';
@@ -187,7 +192,9 @@ export class CommandService {
    * @returns {string} - The package manager command
    */
   getPackageManagerCommand(serviceName: string): string {
-    const service = this.servicesService.getServices().find(s => s.name === serviceName);
+    const service = this.servicesService
+      .getServices()
+      .find((s) => s.name === serviceName);
     if (!service) {
       throw new Error(`Service ${serviceName} not found`);
     }
@@ -272,9 +279,10 @@ export class CommandService {
        * INSTALL - automatically uses the correct package manager
        *******************************************************/
       case DefaultTask.INSTALL:
-        const packageManagerCommand = this.getPackageManagerCommand(serviceName);
+        const packageManagerCommand =
+          this.getPackageManagerCommand(serviceName);
         command = `${packageManagerCommand} install`;
-        
+
         await this.runProcess(task, command, '', serviceName, cwd).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
@@ -285,7 +293,8 @@ export class CommandService {
        *******************************************************/
       case DefaultTask.START_SERVICE:
         this.servicesService.setServiceRunningTask(serviceName, task);
-        const startPackageManagerCommand = this.getPackageManagerCommand(serviceName);
+        const startPackageManagerCommand =
+          this.getPackageManagerCommand(serviceName);
         command = `${startPackageManagerCommand} run ${serviceObject.npmRunLifecycle}`;
         this.servicesService.setServiceRunStatus(
           serviceName,
@@ -404,7 +413,10 @@ export class CommandService {
     command = command.replace('%{npmCommand}', this.npmCommand);
     command = command.replace('%{pnpmCommand}', this.pnpmCommand);
     command = command.replace('%{yarnCommand}', this.yarnCommand);
-    command = command.replace('%{packageManagerCommand}', this.getPackageManagerCommand(service.name));
+    command = command.replace(
+      '%{packageManagerCommand}',
+      this.getPackageManagerCommand(service.name),
+    );
     command = command.replace('%{service}', service.name);
     const cwd = this.servicesService.getServicePath(service.name);
 
