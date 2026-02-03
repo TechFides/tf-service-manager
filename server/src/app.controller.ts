@@ -11,7 +11,6 @@ import { BranchTasksDto } from './dto/branch-task.dto';
 import { PckgAuditService } from './services/pckg-audit.service';
 import { PckgAutofixDto } from './dto/pckg-autofix.dto';
 import { ResetDefaultsService } from './services/reset-defaults.service';
-import * as console from 'node:console';
 
 @Controller()
 export class AppController {
@@ -39,9 +38,8 @@ export class AppController {
   async getPckgAuditForService(
     @Param('serviceName') serviceName: string,
   ): Promise<string> {
-    const result = await this.pckgAuditService.getPackageAuditForService(
-      serviceName,
-    );
+    const result =
+      await this.pckgAuditService.getPackageAuditForService(serviceName);
     return JSON.parse(result);
   }
 

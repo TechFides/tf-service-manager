@@ -35,11 +35,7 @@ export class ResetDefaultsService {
     gitCheckoutType: string,
   ): Promise<string> {
     await this.resetServiceGit(service.name, gitCheckoutType);
-    await this.commandService.runTask(
-      DefaultTask.INSTALL,
-      service.name,
-      {},
-    );
+    await this.commandService.runTask(DefaultTask.INSTALL, service.name, {});
 
     if (service.genericTasks.includes(this.copyEnvTaskName)) {
       await this.commandService.runTask(this.copyEnvTaskName, service.name, {});

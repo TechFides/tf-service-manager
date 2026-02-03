@@ -3,7 +3,7 @@ import * as path from 'path';
 import { ServiceDto, TaskDto } from '../dto/service.dto';
 import { ServiceStatusDto } from '../dto/service-status.dto';
 import * as fs from 'fs';
-import * as waitOn from 'wait-on';
+import waitOn from 'wait-on';
 import { ChildProcessWithoutNullStreams } from 'child_process';
 import { ConfigService } from '@nestjs/config';
 import * as console from 'node:console';
@@ -80,7 +80,10 @@ const ensureTaskHasRequiredFields = (task: Task): void => {
   }
 };
 
-const detectPackageManager = (servicePath: string, serviceName: string): PackageManager => {
+const detectPackageManager = (
+  servicePath: string,
+  serviceName: string,
+): PackageManager => {
   if (fs.existsSync(path.resolve(`${servicePath}/pnpm-lock.yaml`))) {
     return PackageManager.PNPM;
   } else if (fs.existsSync(path.resolve(`${servicePath}/yarn.lock`))) {
@@ -134,7 +137,10 @@ export class ServicesService {
       baseService.runningTasks = [];
 
       // Autodetect package manager (this.servicesDirectory must be set before this line)
-      baseService.packageManager = detectPackageManager(this.getServicePath(service.name), service.name);
+      baseService.packageManager = detectPackageManager(
+        this.getServicePath(service.name),
+        service.name,
+      );
 
       this.services.push(service as BaseService);
     }
@@ -218,7 +224,7 @@ export class ServicesService {
       } else {
         return [];
       }
-    } catch (e) {
+    } catch {
       console.log(`Can not load npm scripts for service: ${service}`);
     }
   }
