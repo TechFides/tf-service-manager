@@ -4,8 +4,7 @@ interface FontSizeState {
   fontSize: number;
 }
 
-export const useFontSizeStore = defineStore({
-  id: "font-size",
+export const useFontSizeStore = defineStore("font-size", {
   persist: true,
   state: () =>
     ({

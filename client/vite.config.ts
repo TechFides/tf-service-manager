@@ -21,7 +21,15 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
+        src: fileURLToPath(new URL("./src", import.meta.url)),
         "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    },
+    css: {
+      preprocessorOptions: {
+        sass: {
+          api: "modern-compiler",
+        },
       },
     },
   };

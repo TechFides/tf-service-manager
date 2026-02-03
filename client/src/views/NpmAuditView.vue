@@ -215,10 +215,10 @@ const tryAutoFixButtonClick = async () => {
         fix: s.vulnerabilities
           ? Boolean(
               s.vulnerabilities.info +
-                s.vulnerabilities.low +
-                s.vulnerabilities.moderate +
-                s.vulnerabilities.high +
-                s.vulnerabilities.critical,
+              s.vulnerabilities.low +
+              s.vulnerabilities.moderate +
+              s.vulnerabilities.high +
+              s.vulnerabilities.critical,
             )
           : false,
       };

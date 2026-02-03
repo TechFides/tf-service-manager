@@ -38,8 +38,7 @@ const isTaskRunnable = function (
   }
 };
 
-export const useTasksStore = defineStore({
-  id: "tf-sm-tasks",
+export const useTasksStore = defineStore("tf-sm-tasks", {
   state: () =>
     ({
       tasks: [],

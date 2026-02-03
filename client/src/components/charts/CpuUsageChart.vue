@@ -39,12 +39,13 @@ const option = ref<EChartsOption>({
   backgroundColor: "transparent",
   legend: {
     data: [],
+    top: 0,
+    left: 0,
   },
   grid: {
     left: "3%",
     right: "4%",
     bottom: "3%",
-    containLabel: true,
   },
   xAxis: {
     type: "category",
@@ -69,14 +70,18 @@ const regenerateSeries = () => {
 
   option.value.series = [];
   for (const service of servicesStore.services) {
+    const seriesColor = lighten(getPaletteColor(service.color), 20);
     option.value.series.push({
       name: service.name.replace("TF_", ""),
       type: "line",
       showSymbol: false,
       smooth: true,
+      itemStyle: {
+        color: seriesColor,
+      },
       lineStyle: {
         width: 2,
-        color: lighten(getPaletteColor(service.color), 20),
+        color: seriesColor,
       },
       data: [],
     });
