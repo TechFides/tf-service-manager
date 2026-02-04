@@ -6,7 +6,7 @@
           <div class="dialog-header-text">{{ title }}</div>
         </q-card-section>
         <q-card-section class="dialog-content">
-          <vue-json-pretty :data="content" highlightSelectedNode="false" />
+          <vue-json-pretty :data="content" :highlightSelectedNode="false" />
         </q-card-section>
         <q-card-section class="confirm-buttons">
           <q-btn

@@ -67,11 +67,7 @@
                   <q-td key="branch" :props="props" class="text-left">
                     <q-spinner-hourglass
                       v-if="
-                        gitTasks.includes(
-                          servicesStore.servicesStatus.filter(
-                            (svc) => svc.name === props.row.name,
-                          )[0].runningTask,
-                        )
+                        gitTasks.includes(getRunningTask(props.row.name) || '')
                       "
                       color="white"
                       size="sm"
@@ -101,11 +97,7 @@
                     :props="props"
                   >
                     <q-spinner-hourglass
-                      v-if="
-                        servicesStore.servicesStatus.filter(
-                          (svc) => svc.name === props.row.name,
-                        )[0].runningTask === task.name
-                      "
+                      v-if="isTaskRunning(props.row.name, task.name)"
                       color="white"
                       size="sm"
                     />
@@ -115,7 +107,7 @@
                       :color="task.color"
                       :icon="task.icon"
                       :disable="
-                        !tasksStore.runnableStatus[task.name][props.row.name]
+                        !tasksStore.runnableStatus[task.name]?.[props.row.name]
                       "
                       @click="runTask(task.name, props.row.name)"
                     />
@@ -126,14 +118,11 @@
                         servicesStore
                           .getServiceByName(props.row.name)
                           ?.tasks!.map((task) => task.name)
-                          .includes(
-                            servicesStore.servicesStatus.filter(
-                              (svc) => svc.name === props.row.name,
-                            )[0].runningTask,
-                          )
+                          .includes(getRunningTask(props.row.name) || '')
                       "
                       color="white"
-                      size="sm" />
+                      size="sm"
+                    />
                     <custom-action-button
                       v-else
                       :disable-button-function="disableOnEmptySelection"
@@ -143,7 +132,8 @@
                       :tasks="
                         servicesStore.getServiceByName(props.row.name)?.tasks!
                       "
-                  /></q-td>
+                    />
+                  </q-td>
                 </q-tr>
               </template>
               <template v-slot:top-row="props">
@@ -252,7 +242,9 @@ const servicesStore = useServicesStore();
 const tasksStore = useTasksStore();
 const settingStore = useSettingsStore();
 const resetToDefaultsStore = useResetStore();
-const refConfirmResetAllDialog = ref(ConfirmDialog);
+
+const refConfirmResetAllDialog = ref<any>(null);
+
 const resetInProgress = computed(() => resetToDefaultsStore.isResetting);
 const serviceStatusColumns = computed((): QTableProps["columns"] => {
   const columns: QTableProps["columns"] = [
@@ -306,6 +298,21 @@ const serviceStatusColumns = computed((): QTableProps["columns"] => {
   return columns;
 });
 
+const getRunningTask = (
+  serviceName: string | undefined,
+): string | undefined => {
+  if (!serviceName) return undefined;
+  return servicesStore.servicesStatus.find((svc) => svc.name === serviceName)
+    ?.runningTask;
+};
+
+const isTaskRunning = (
+  serviceName: string | undefined,
+  taskName: string,
+): boolean => {
+  return getRunningTask(serviceName) === taskName;
+};
+
 const selectAllServices = () => {
   settingStore.selectedServices = servicesStore.services.map((s) => s.name);
   updateCustomTasksForSelected(settingStore.selectedServices);
@@ -352,7 +359,7 @@ const disableOnEmptySelection = (tasks: Task[]): boolean => {
   return tasks.length === 0;
 };
 const disableTaskBasedOnRunState = (task: Task, service: string): boolean => {
-  return !tasksStore.runnableStatus[task.name][service];
+  return !tasksStore.runnableStatus[task.name]?.[service];
 };
 const alwaysEnableTask = (): boolean => {
   return false; // used in `disable` so to enable, we must return false
@@ -368,7 +375,9 @@ const openConfirmDefaultsResetDialog = (): void => {
     confirmAction: startResetToDefaults,
   };
 
-  refConfirmResetAllDialog.value.showDialog(params);
+  if (refConfirmResetAllDialog.value) {
+    refConfirmResetAllDialog.value.showDialog(params);
+  }
 };
 
 const startResetToDefaults = () => {

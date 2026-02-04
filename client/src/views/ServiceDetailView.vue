@@ -1,18 +1,18 @@
 <template>
   <q-page class="q-pa-md">
-    <div>
+    <div v-if="serviceStatus">
       <q-card flat class="col-12">
         <q-card-section class="row">
           <div class="text-h5">Service tasks</div>
           <branch-chip class="q-ml-md" :status="serviceStatus" />
           <q-space />
           <a
-            :href="servicesStore.getServiceAppUrl(route.params.name)"
+            :href="servicesStore.getServiceAppUrl(serviceName)"
             target="_blank"
             class="service-link text-blue-5 q-mt-sm"
           >
             <q-icon name="launch" size="20px" class="q-mr-sm" />{{
-              servicesStore.getServiceAppUrl(route.params.name)
+              servicesStore.getServiceAppUrl(serviceName)
             }}</a
           >
         </q-card-section>
@@ -28,14 +28,13 @@
           >
             <q-list>
               <q-item
-                v-for="pckgScript of servicesStore.getServiceByName(
-                  route.params.name,
-                ).pckgScripts"
+                v-for="pckgScript of servicesStore.getServiceByName(serviceName)
+                  ?.pckgScripts || []"
                 v-bind:key="pckgScript"
                 clickable
                 v-close-popup
                 dense
-                @click="runPckgScript(pckgScript, route.params.name)"
+                @click="runPckgScript(pckgScript, serviceName)"
               >
                 <q-item-section>
                   <q-item-label>{{ pckgScript }}</q-item-label>
@@ -64,8 +63,8 @@
             class="q-ma-xs"
             size="sm"
             :icon="task.icon"
-            :disable="!tasksStore.runnableStatus[task.name][route.params.name]"
-            @click="runTask(task.name, route.params.name)"
+            :disable="!tasksStore.runnableStatus[task.name]?.[serviceName]"
+            @click="runTask(task.name, serviceName)"
           />
           <custom-action-button
             :disable-button-function="disableOnEmptySelection"
@@ -73,20 +72,23 @@
             btn-label="Custom action"
             btn-class="q-ma-xs"
             :run-task-function="runTask"
-            :service-name="route.params.name as string"
-            :tasks="
-              servicesStore.getServiceByName(route.params.name as string)
-                ?.tasks!
-            "
+            :service-name="serviceName"
+            :tasks="servicesStore.getServiceByName(serviceName)?.tasks || []"
           />
         </q-card-section>
       </q-card>
     </div>
+
+    <div v-else class="q-pa-md text-center">
+      <q-spinner size="30px" color="primary" />
+      <div class="text-grey q-mt-sm">Loading service...</div>
+    </div>
+
     <div class="q-pt-md">
       <q-card flat class="col-12">
         <q-card-section>
           <logs-explorer
-            :logs="logsStore.logsForService(route.params.name)"
+            :logs="logsStore.logsForService(serviceName)"
             :height="logsExplorerHeight"
             :clear-logs-callback="clearLogs"
             :show-service-name="false"
@@ -105,23 +107,23 @@ import { useTasksStore } from "@/stores/tasks";
 import { useRoute } from "vue-router";
 import LogsExplorer from "@/components/LogsExplorer.vue";
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import { useServicesStore, type ServiceStatus } from "@/stores/services";
+import { useServicesStore } from "@/stores/services";
 import ConfirmDialog from "@/components/confirmDialog/ConfirmDialog.vue";
 import BranchChip from "@/components/chips/BranchChip.vue";
 import CustomActionButton from "@/components/CustomActionButton.vue";
 import type { Task } from "@/stores/tasks";
 
-const refConfirmDialog = ref(ConfirmDialog);
+// Use 'any' for the template ref to avoid strict type issues with Quasar components
+const refConfirmDialog = ref<any>(null);
 const logsStore = useLogsStore();
 const tasksStore = useTasksStore();
 const servicesStore = useServicesStore();
 const route = useRoute();
 
-const serviceStatus = computed(
-  () =>
-    servicesStore.servicesStatus.find(
-      (s) => s.name === route.params.name,
-    ) as ServiceStatus,
+const serviceName = computed(() => (route.params.name as string) || "");
+
+const serviceStatus = computed(() =>
+  servicesStore.servicesStatus.find((s) => s.name === serviceName.value),
 );
 
 const runTask = (task: string, service: string) => {
@@ -134,16 +136,15 @@ const runPckgScript = (scriptName: string, service: string) => {
 };
 
 const clearLogs = () => {
-  const serviceName = route.params.name as string;
-  console.log(`Clearing logs for service: ${serviceName}`);
-  logsStore.clearLogs(serviceName);
+  console.log(`Clearing logs for service: ${serviceName.value}`);
+  logsStore.clearLogs(serviceName.value);
 };
 
 const disableOnEmptySelection = (tasks: Task[]): boolean => {
   return tasks.length === 0;
 };
 const disableTaskBasedOnRunState = (task: Task, service: string): boolean => {
-  return !tasksStore.runnableStatus[task.name][service];
+  return !tasksStore.runnableStatus[task.name]?.[service];
 };
 
 /**

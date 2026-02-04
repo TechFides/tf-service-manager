@@ -4,7 +4,8 @@
 
   "compilerOptions": {
     "baseUrl": ".",
-    "lib": ["es2021"],
+    "lib": ["es2021", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
     "paths": {
       "@/*": ["./src/*"]
     }

@@ -4,7 +4,7 @@
       class="chip"
       square
       :color="params.data.color"
-      :size="params.getSize()"
+      :size="(params as any).getSize()"
     >
       {{ params.value }}
     </q-chip>
