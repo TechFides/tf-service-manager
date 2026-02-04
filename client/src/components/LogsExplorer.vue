@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, onMounted, watch } from "vue";
+import { ref, onMounted, watch } from "vue";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { AgGridVue } from "ag-grid-vue3";
@@ -72,7 +72,7 @@ const props = defineProps<{
 }>();
 
 const autoScroll = ref(true);
-const agGrid = ref<InstanceType<typeof AgGridVue>>(null);
+const agGrid = ref<InstanceType<typeof AgGridVue> | null>(null);
 
 const fontSizeStore = useFontSizeStore();
 const fontSize = ref(fontSizeStore.fontSize);
@@ -127,7 +127,10 @@ const columnDefs = ref<ColDef[]>([
     cellRendererParams: {
       showDialog: (params: { value: string }) => {
         if (logDetailDialog.value) {
-          logDetailDialog.value.showDialog(params);
+          logDetailDialog.value.showDialog({
+            title: "Log Details",
+            content: params.value, // Mapping 'value' to 'content'
+          });
         }
       },
     },
@@ -144,7 +147,7 @@ const defaultColDef = ref({
 });
 
 const scrollToBottom = () => {
-  if (autoScroll.value && agGrid.value) {
+  if (autoScroll.value && agGrid.value?.api) {
     const rowCount = agGrid.value.api.getDisplayedRowCount();
     agGrid.value.api.ensureIndexVisible(rowCount - 1, "bottom");
   }
@@ -155,7 +158,7 @@ const onFirstDataRendered = () => {
 };
 
 const onRowDataUpdated = () => {
-  agGrid.value.api.autoSizeColumns(["ts", "service"]);
+  agGrid.value?.api?.autoSizeColumns(["ts", "service"]);
   scrollToBottom();
 };
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseService, ServicesService } from './services.service';
 import { Cron } from '@nestjs/schedule';
-import * as pidusage from 'pidusage';
+import pidusage from 'pidusage';
 import pidtree from 'pidtree';
 import { EventsGateway } from '../events.gateway';
 import { runCommand } from 'src/utils/process';

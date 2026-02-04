@@ -26,7 +26,7 @@ const totalUsage = ref(0);
 
 provide(THEME_KEY, "dark");
 
-const xAxisData = [];
+const xAxisData: string[] = [];
 for (let i = MAX_MONITOR_HISTORY; i > 0; i--) {
   xAxisData.push(`${-i}s`);
 }
@@ -59,19 +59,23 @@ const option = ref<EChartsOption>({
 });
 
 const regenerateSeries = () => {
-  option.value.legend.data = servicesStore.services.map((service) => {
-    return {
-      name: service.name.replace("TF_", ""),
-      itemStyle: {
-        color: lighten(getPaletteColor(service.color), 20),
+  if (option.value.legend) {
+    (option.value.legend as any).data = servicesStore.services.map(
+      (service) => {
+        return {
+          name: service.name.replace("TF_", ""),
+          itemStyle: {
+            color: lighten(getPaletteColor(service.color), 20),
+          },
+        };
       },
-    };
-  });
+    );
+  }
 
   option.value.series = [];
   for (const service of servicesStore.services) {
     const seriesColor = lighten(getPaletteColor(service.color), 20);
-    option.value.series.push({
+    (option.value.series as any[]).push({
       name: service.name.replace("TF_", ""),
       type: "line",
       showSymbol: false,
@@ -95,13 +99,15 @@ servicesStore.$subscribe((mutation, state) => {
   let currentTotalUsage = 0;
   for (const serviceMonitor of state.servicesMonitors) {
     const seriesData = option?.value?.series as LineSeriesOption[];
-    const series = seriesData.find(
+    const series = seriesData?.find(
       (s) => `TF_${s.name}` === serviceMonitor.name,
     );
     if (series) {
-      currentTotalUsage +=
-        serviceMonitor.cpuPercent[serviceMonitor.cpuPercent.length - 1];
-      series.data = serviceMonitor.cpuPercent;
+      const cpuData = serviceMonitor.cpuPercent;
+      if (cpuData && cpuData.length > 0) {
+        currentTotalUsage += cpuData[cpuData.length - 1]!;
+        series.data = cpuData;
+      }
     }
   }
   totalUsage.value = currentTotalUsage;

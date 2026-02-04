@@ -166,7 +166,7 @@ const logsStore = useLogsStore();
 const servicesStore = useServicesStore();
 const resetDefaultsStore = useResetStore();
 servicesStore.getAllServices().then(() => {
-  if (homeView.value.updateCustomTasksForSelected !== undefined) {
+  if (homeView.value?.updateCustomTasksForSelected) {
     const settingsStore = useSettingsStore();
     homeView.value.updateCustomTasksForSelected(settingsStore.selectedServices);
   }

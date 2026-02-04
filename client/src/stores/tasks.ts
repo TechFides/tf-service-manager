@@ -50,22 +50,27 @@ export const useTasksStore = defineStore("tf-sm-tasks", {
       const result: { [key: string]: { [key: string]: boolean } } = {};
 
       const servicesStore = useServicesStore();
+
       for (const task of state.tasks) {
-        result[task.name] = {};
+        if (!result[task.name]) {
+          result[task.name] = {};
+        }
         for (const serviceStatus of servicesStore.servicesStatus) {
-          result[task.name][serviceStatus.name] = isTaskRunnable(
+          result[task.name]![serviceStatus.name] = isTaskRunnable(
             serviceStatus,
             task,
           );
         }
       }
+
       for (const service of servicesStore.services) {
-        for (const task of service.tasks) {
-          if (!Object.prototype.hasOwnProperty.call(result, task.name)) {
+        const serviceTasks = service.tasks || []; // Handle undefined tasks
+        for (const task of serviceTasks) {
+          if (!result[task.name]) {
             result[task.name] = {};
           }
           for (const serviceStatus of servicesStore.servicesStatus) {
-            result[task.name][serviceStatus.name] = isTaskRunnable(
+            result[task.name]![serviceStatus.name] = isTaskRunnable(
               serviceStatus,
               task,
             );
