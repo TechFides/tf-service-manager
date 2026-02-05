@@ -11,7 +11,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
+    <q-drawer v-model="leftDrawerOpen" side="left" bordered>
       <q-list>
         <q-item
           clickable
@@ -148,7 +148,8 @@ import ServiceRunStatus from "@/components/ServiceRunStatus.vue";
 import { useSettingsStore } from "./stores/settings";
 import { useResetStore } from "@/stores/resetToDefaultsStore";
 
-const leftDrawerOpen = ref(false);
+const settingsStore = useSettingsStore();
+const leftDrawerOpen = ref(settingsStore.leftDrawerDefaultOpen);
 const homeView = ref();
 
 const toggleLeftDrawer = () => {
@@ -167,7 +168,6 @@ const servicesStore = useServicesStore();
 const resetDefaultsStore = useResetStore();
 servicesStore.getAllServices().then(() => {
   if (homeView.value?.updateCustomTasksForSelected) {
-    const settingsStore = useSettingsStore();
     homeView.value.updateCustomTasksForSelected(settingsStore.selectedServices);
   }
 });
