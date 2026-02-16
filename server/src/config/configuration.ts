@@ -26,5 +26,33 @@ export default () => {
   if (!('git_interval' in configuration)) {
     configuration.git_interval = defaultConfig.git_interval;
   }
+
+  const expandedServices: Record<string, any>[] = [];
+  for (const service of configuration.services) {
+    if (service.subservices && Array.isArray(service.subservices)) {
+      const { subservices, ...rootService } = service;
+      expandedServices.push({
+        ...rootService,
+        isMonorepoRoot: true,
+      });
+
+      for (const sub of service.subservices) {
+        expandedServices.push({
+          ...sub,
+          rootPath: service.rootPath,
+          relativePath: sub.path,
+          gitUrl: service.gitUrl,
+          defaultGitBranch: service.defaultGitBranch,
+          packageManager: service.packageManager,
+          npmRunLifecycle: sub.npmRunLifecycle || service.npmRunLifecycle,
+          isMonorepoChild: true,
+        });
+      }
+    } else {
+      expandedServices.push(service);
+    }
+  }
+  configuration.services = expandedServices;
+
   return configuration;
 };

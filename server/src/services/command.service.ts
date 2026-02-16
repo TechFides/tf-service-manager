@@ -292,6 +292,16 @@ export class CommandService {
        * START_SERVICE
        *******************************************************/
       case DefaultTask.START_SERVICE:
+        if (!serviceObject.npmRunLifecycle) {
+          this.servicesService.setServiceRunningTask(serviceName, '');
+          this.eventsGateway.sendStatusUpdateToClient();
+          this.eventsGateway.sendLogsToClient(
+            `Service ${serviceName} has no npmRunLifecycle script configured.`,
+            serviceName,
+            true,
+          );
+          break;
+        }
         this.servicesService.setServiceRunningTask(serviceName, task);
         const startPackageManagerCommand =
           this.getPackageManagerCommand(serviceName);
@@ -324,6 +334,52 @@ export class CommandService {
         const serviceToClone = this.servicesService
           .getServices()
           .find((s) => s.name === serviceName);
+
+        // Monorepo: check if rootPath already exists
+        if (serviceToClone.rootPath) {
+          if (
+            fs.existsSync(serviceToClone.rootPath) &&
+            fs.readdirSync(serviceToClone.rootPath).length > 0
+          ) {
+            this.eventsGateway.sendLogsToClient(
+              `Monorepo root already exists at ${serviceToClone.rootPath}, skipping clone`,
+              serviceName,
+              true,
+            );
+            this.servicesService.setServiceRunningTask(serviceName, '');
+            this.eventsGateway.sendStatusUpdateToClient();
+            break;
+          }
+          // Clone into parent directory of rootPath
+          const parentDir = path.dirname(serviceToClone.rootPath);
+          const targetDirName = path.basename(serviceToClone.rootPath);
+          if (!ensureDirectory(parentDir)) {
+            break;
+          }
+          let repoUrl: string;
+          if (attributes.gitCheckoutType === 'ssh') {
+            repoUrl = `git@${serviceToClone.gitUrl.replace(
+              '/',
+              ':',
+            )}.git ${targetDirName}`;
+          } else if (attributes.gitCheckoutType === 'https') {
+            repoUrl = `https://${serviceToClone.gitUrl} ${targetDirName}`;
+          } else if (attributes.gitCheckoutType === 'https+basicauth') {
+            repoUrl = `https://${attributes.basicAuth}@${serviceToClone.gitUrl} ${targetDirName}`;
+          } else {
+            throw new Error('Unknown gitCheckoutType :( ');
+          }
+          command = `git clone ${repoUrl}`;
+          await this.runProcess(task, command, '', serviceName, parentDir).then(
+            () => {
+              this.servicesService.setServiceRunningTask(serviceName, '');
+              this.eventsGateway.sendStatusUpdateToClient();
+            },
+          );
+          break;
+        }
+
+        // Standard multi-repo clone
         let repoUrl: string;
         if (attributes.gitCheckoutType === 'ssh') {
           repoUrl = `git@${serviceToClone.gitUrl.replace(
@@ -359,9 +415,18 @@ export class CommandService {
        * REMOVE_SERVICE
        *******************************************************/
       case DefaultTask.REMOVE_SERVICE:
-        command = `${this.rmCommand} ${serviceFolder}`;
-        cwd = path.resolve(this.servicesDirectory);
-        if (!ensureDirectory(this.servicesDirectory)) {
+        const serviceToRemove = this.servicesService
+          .getServices()
+          .find((s) => s.name === serviceName);
+        if (serviceToRemove?.rootPath) {
+          // Monorepo: remove the entire rootPath
+          command = `${this.rmCommand} ${serviceToRemove.rootPath}`;
+          cwd = path.dirname(serviceToRemove.rootPath);
+        } else {
+          command = `${this.rmCommand} ${serviceFolder}`;
+          cwd = path.resolve(this.servicesDirectory);
+        }
+        if (!ensureDirectory(cwd)) {
           break;
         }
         this.runProcess(task, command, '', serviceName, cwd, shell, () => {
@@ -369,6 +434,17 @@ export class CommandService {
             .getServices()
             .find((s) => s.name === serviceName);
           this.servicesService.resetServiceBranchStatus(serviceToUpdate);
+          // Also reset branch status for sibling monorepo services
+          if (serviceToRemove?.rootPath) {
+            for (const sibling of this.servicesService.getServices()) {
+              if (
+                sibling.rootPath === serviceToRemove.rootPath &&
+                sibling.name !== serviceName
+              ) {
+                this.servicesService.resetServiceBranchStatus(sibling);
+              }
+            }
+          }
         }).then(() => {
           this.servicesService.setServiceRunningTask(serviceName, '');
           this.eventsGateway.sendStatusUpdateToClient();
@@ -418,6 +494,7 @@ export class CommandService {
       this.getPackageManagerCommand(service.name),
     );
     command = command.replace('%{service}', service.name);
+    command = command.replace('%{ROOT_DIR}', service.rootPath || '');
     const cwd = this.servicesService.getServicePath(service.name);
 
     this.servicesService.setServiceRunningTask(service.name, task.name);

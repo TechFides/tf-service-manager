@@ -95,9 +95,12 @@
           v-bind:key="service.name"
         >
           <q-item-section>
-            <q-item-label class="text-weight-bolder text-capitalize">{{
-              service.name
-            }}</q-item-label>
+            <q-item-label
+              class="text-weight-bolder text-capitalize ellipsis"
+              style="max-width: 135px"
+              :title="service.name"
+              >{{ truncate(service.name, 13) }}</q-item-label
+            >
           </q-item-section>
           <q-item-section avatar>
             <service-run-status
@@ -226,6 +229,10 @@ const navigateTo = (to: string) => {
 };
 
 const route = useRoute();
+
+const truncate = (str: string, n: number) => {
+  return str.length > n ? str.substring(0, n - 1) + "..." : str;
+};
 </script>
 
 <style>
