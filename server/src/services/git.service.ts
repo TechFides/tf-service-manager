@@ -10,7 +10,7 @@ export class GitService {
     private readonly eventsGateway: EventsGateway,
     @Inject(forwardRef(() => CommandService))
     private readonly commandService: CommandService,
-  ) { }
+  ) {}
   /**
    * Asynchronously pulls the latest changes from a git repository.
    *
@@ -52,8 +52,6 @@ export class GitService {
           cwd,
         );
 
-
-
         if (change) {
           this.servicesService.setServiceRunningTask(service.name, '');
           this.eventsGateway.sendStatusUpdateToClient();
@@ -88,8 +86,9 @@ export class GitService {
     }
 
     const cwd = this.servicesService.getServicePath(serviceName);
-    const command = `git push ${upstream ? '--set-upstream ' + upstream : ''
-      } ${branchName}`;
+    const command = `git push ${
+        upstream ? '--set-upstream ' + upstream : ''
+    } ${branchName}`;
 
     await this.commandService.runCommandWithLog(
       command,
