@@ -419,9 +419,17 @@ export class CommandService {
           .getServices()
           .find((s) => s.name === serviceName);
         if (serviceToRemove?.rootPath) {
-          // Monorepo: remove the entire rootPath
-          command = `${this.rmCommand} ${serviceToRemove.rootPath}`;
-          cwd = path.dirname(serviceToRemove.rootPath);
+          if (serviceToRemove?.relativePath) {
+            const fullPath = path.resolve(
+              serviceToRemove.rootPath,
+              serviceToRemove.relativePath,
+            );
+            command = `${this.rmCommand} ${fullPath}`;
+            cwd = serviceToRemove.rootPath;
+          } else {
+            command = `${this.rmCommand} ${serviceToRemove.rootPath}`;
+            cwd = path.dirname(serviceToRemove.rootPath);
+          }
         } else {
           command = `${this.rmCommand} ${serviceFolder}`;
           cwd = path.resolve(this.servicesDirectory);
