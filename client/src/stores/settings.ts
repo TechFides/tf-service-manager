@@ -4,6 +4,7 @@ interface SettingState {
   gitCheckoutType: string;
   selectedServices: string[];
   ideCommand: string;
+  leftDrawerDefaultOpen: boolean;
 }
 
 export const useSettingsStore = defineStore("tf-sm-settings", {
@@ -13,6 +14,7 @@ export const useSettingsStore = defineStore("tf-sm-settings", {
       gitCheckoutType: "ssh",
       selectedServices: [],
       ideCommand: "code",
+      leftDrawerDefaultOpen: true,
     }) as SettingState,
 
   getters: {},
