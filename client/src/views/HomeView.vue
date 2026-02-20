@@ -105,12 +105,17 @@
 
                   <q-td key="cloned" :props="props">
                     <q-icon
-                      v-if="props.row.cloned"
+                      v-if="props.row.cloned && !isMonorepoChild(props.row.name)"
                       size="sm"
                       color="green"
                       name="check_circle_outline"
                     />
-                    <q-icon v-else size="sm" color="red" name="highlight_off" />
+                    <q-icon
+                      v-else-if="!props.row.cloned && !isMonorepoChild(props.row.name)"
+                      size="sm"
+                      color="red"
+                      name="highlight_off"
+                    />
                   </q-td>
 
                   <q-td key="runStatus" :props="props">
@@ -264,7 +269,7 @@ import type { ConfirmDialogParams } from "@/components/confirmDialog/confirmDial
 import { useResetStore } from "@/stores/resetToDefaultsStore";
 
 const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];
-const restrictedChildTasks = ["GIT_CLONE"];
+const restrictedChildTasks = ["GIT_CLONE", "REMOVE_SERVICE"];
 
 const isGitTask = (task: Task): boolean => {
   return gitTasks.includes(task.name);

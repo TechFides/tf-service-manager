@@ -314,14 +314,16 @@ export class ServicesService {
   serviceIsCloned(service: BaseService) {
     if (service.rootPath) {
       // For monorepo services, check if the rootPath exists and has content
-      if (service.relativePath) {
-        const fullPath = path.join(service.rootPath, service.relativePath);
-        return fs.existsSync(fullPath) && fs.readdirSync(fullPath).length > 0;
-      }
-      return (
+      const cloned =
         fs.existsSync(service.rootPath) &&
-        fs.readdirSync(service.rootPath).length > 1
-      );
+        fs.readdirSync(service.rootPath).length > 1;
+
+      if (service.isMonorepoChild && service.relativePath) {
+        const fullPath = path.join(service.rootPath, service.relativePath);
+        // If it's a child, it's "cloned" if the root is cloned and the child directory exists
+        return cloned && fs.existsSync(fullPath);
+      }
+      return cloned;
     }
     const cwd = this.getServicePath(service.name);
     return fs.existsSync(cwd) && fs.readdirSync(cwd).length > 1;
