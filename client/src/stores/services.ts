@@ -21,6 +21,10 @@ export interface Service {
   pckgScripts?: string[];
   gitUrl: string;
   packageManager?: string;
+  rootPath?: string;
+  relativePath?: string;
+  isMonorepoRoot?: boolean;
+  isMonorepoChild?: boolean;
 }
 export interface ServiceStatus {
   name: string;

@@ -44,6 +44,10 @@ export interface BaseService {
   currentGitBranchHasChanges?: boolean;
   currentGitBranchAhead?: number;
   currentGitBranchBehind?: number;
+  rootPath?: string;
+  relativePath?: string;
+  isMonorepoRoot?: boolean;
+  isMonorepoChild?: boolean;
 }
 
 export interface Task {
@@ -65,6 +69,10 @@ export interface BaseServiceConfig {
   genericTasks?: string[];
   tasks?: Task[];
   defaultGitBranch?: string;
+  rootPath?: string;
+  relativePath?: string;
+  isMonorepoRoot?: boolean;
+  isMonorepoChild?: boolean;
 }
 
 const ensureTaskHasRequiredFields = (task: Task): void => {
@@ -167,6 +175,10 @@ export class ServicesService {
         gitUrl: service.gitUrl,
         packageManager: service.packageManager,
         tasks: tasks,
+        rootPath: service.rootPath,
+        relativePath: service.relativePath,
+        isMonorepoRoot: service.isMonorepoRoot,
+        isMonorepoChild: service.isMonorepoChild,
       });
     }
 
@@ -212,20 +224,22 @@ export class ServicesService {
   async getServicePckgScripts(service: string): Promise<string[]> {
     try {
       const packageJsonPath = path.resolve(
-        `${this.servicesDirectory}/${service
-          .toLowerCase()
-          .split('_')
-          .join('-')}/package.json`,
+        this.getServicePath(service),
+        'package.json',
       );
+      if (!fs.existsSync(packageJsonPath)) {
+        return [];
+      }
       const packageJson = fs.readFileSync(packageJsonPath);
       if (packageJson) {
         const data = JSON.parse(packageJson.toString());
-        return Object.keys(data.scripts);
+        return Object.keys(data.scripts || {});
       } else {
         return [];
       }
-    } catch {
-      console.log(`Can not load npm scripts for service: ${service}`);
+    } catch (e) {
+      // console.log(`Can not load npm scripts for service: ${service}`);
+      return [];
     }
   }
 
@@ -288,12 +302,29 @@ export class ServicesService {
   }
 
   getServicePath(service: string): string {
+    const svc = this.services.find((s) => s.name === service);
+    if (svc?.rootPath) {
+      return path.resolve(path.join(svc.rootPath, svc.relativePath || ''));
+    }
     return path.resolve(
       `${this.servicesDirectory}/${service.toLowerCase().split('_').join('-')}`,
     );
   }
 
   serviceIsCloned(service: BaseService) {
+    if (service.rootPath) {
+      // For monorepo services, check if the rootPath exists and has content
+      const cloned =
+        fs.existsSync(service.rootPath) &&
+        fs.readdirSync(service.rootPath).length > 1;
+
+      if (service.isMonorepoChild && service.relativePath) {
+        const fullPath = path.join(service.rootPath, service.relativePath);
+        // If it's a child, it's "cloned" if the root is cloned and the child directory exists
+        return cloned && fs.existsSync(fullPath);
+      }
+      return cloned;
+    }
     const cwd = this.getServicePath(service.name);
     return fs.existsSync(cwd) && fs.readdirSync(cwd).length > 1;
   }

@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
+import * as path from 'path';
 
 const defaultConfig: Record<string, any> = {
   services_directory: '../../../services',
@@ -26,5 +27,49 @@ export default () => {
   if (!('git_interval' in configuration)) {
     configuration.git_interval = defaultConfig.git_interval;
   }
+
+  const directory = configuration.services_directory as string;
+  const servicesDirectoryAbs = path.isAbsolute(directory)
+    ? path.resolve(directory)
+    : path.resolve(`${__dirname}/../../../${directory}`);
+
+  const toServiceFolder = (name: string) => name.toLowerCase().split('_').join('-');
+
+  const expandedServices: Record<string, any>[] = [];
+  for (const service of configuration.services) {
+    if (service.subservices && Array.isArray(service.subservices)) {
+      const { subservices, ...rootService } = service;
+
+      // Ensure rootPath for monorepo root exists; if not provided, derive it
+      const derivedRootPath = rootService.rootPath
+        ? (path.isAbsolute(rootService.rootPath)
+            ? rootService.rootPath
+            : path.resolve(servicesDirectoryAbs, rootService.rootPath))
+        : path.resolve(servicesDirectoryAbs, toServiceFolder(rootService.name));
+
+      expandedServices.push({
+        ...rootService,
+        rootPath: derivedRootPath,
+        isMonorepoRoot: true,
+      });
+
+      for (const sub of service.subservices) {
+        expandedServices.push({
+          ...sub,
+          rootPath: derivedRootPath,
+          relativePath: sub.path,
+          gitUrl: service.gitUrl,
+          defaultGitBranch: service.defaultGitBranch,
+          packageManager: service.packageManager,
+          npmRunLifecycle: sub.npmRunLifecycle || service.npmRunLifecycle,
+          isMonorepoChild: true,
+        });
+      }
+    } else {
+      expandedServices.push(service);
+    }
+  }
+  configuration.services = expandedServices;
+
   return configuration;
 };

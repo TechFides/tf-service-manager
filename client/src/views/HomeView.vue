@@ -22,35 +22,60 @@
           <q-card-section>
             <q-table
               hide-pagination
-              :rows="servicesStore.servicesStatus"
+              :rows="orderedServices"
               :columns="serviceStatusColumns"
               :rows-per-page-options="[0]"
               row-key="name"
               flat
             >
               <template v-slot:body="props">
-                <q-tr :props="props">
-                  <q-td key="name" :props="props">
-                    <q-toggle
-                      v-model="settingStore.selectedServices"
-                      :val="props.row.name"
-                      class="q-pr-sm"
-                      size="sm"
-                      @update:model-value="
-                        (value, _) => updateCustomTasksForSelected(value)
-                      "
-                      checked-icon="check"
-                      unchecked-icon="clear"
-                    />
-                    <a
-                      :href="servicesStore.getServiceAppUrl(props.row.name)"
-                      target="_blank"
-                      class="service-link text-blue-5"
-                    >
-                      <q-icon name="launch" size="20px" class="q-mr-sm" />{{
-                        props.row.name
-                      }}</a
-                    >
+                <q-tr
+                  :props="props"
+                >
+                  <q-td
+                    key="name"
+                    :props="props"
+                    :style="{
+                      paddingLeft: isMonorepoChild(props.row.name)
+                        ? '32px'
+                        : '16px',
+                    }"
+                  >
+                      <div class="row items-center no-wrap">
+                        <q-toggle
+                          v-model="settingStore.selectedServices"
+                          :val="props.row.name"
+                          class="q-pr-sm"
+                          size="sm"
+                          @update:model-value="
+                            (value, _) => updateCustomTasksForSelected(value)
+                          "
+                          checked-icon="check"
+                          unchecked-icon="clear"
+                        />
+                        <div :title="props.row.name">
+                          <span
+                            v-if="isMonorepoRoot(props.row.name)"
+                            class="text-weight-bold text-blue-5"
+                          >
+                            {{ props.row.name }}
+                          </span>
+                          <a
+                            v-else
+                            :href="
+                              servicesStore.getServiceAppUrl(props.row.name)
+                            "
+                            target="_blank"
+                            class="service-link text-blue-5"
+                          >
+                            <q-icon
+                              name="launch"
+                              size="20px"
+                              class="q-mr-sm"
+                            />{{ props.row.name }}</a
+                          >
+                        </div>
+                      </div>
                   </q-td>
 
                   <q-td key="ide" :props="props">
@@ -72,17 +97,25 @@
                       color="white"
                       size="sm"
                     />
-                    <branch-chip v-else :status="props.row" />
+                    <branch-chip
+                      v-else-if="!isMonorepoChild(props.row.name)"
+                      :status="props.row"
+                    />
                   </q-td>
 
                   <q-td key="cloned" :props="props">
                     <q-icon
-                      v-if="props.row.cloned"
+                      v-if="props.row.cloned && !isMonorepoChild(props.row.name)"
                       size="sm"
                       color="green"
                       name="check_circle_outline"
                     />
-                    <q-icon v-else size="sm" color="red" name="highlight_off" />
+                    <q-icon
+                      v-else-if="!props.row.cloned && !isMonorepoChild(props.row.name)"
+                      size="sm"
+                      color="red"
+                      name="highlight_off"
+                    />
                   </q-td>
 
                   <q-td key="runStatus" :props="props">
@@ -102,7 +135,10 @@
                       size="sm"
                     />
                     <q-btn
-                      v-else
+                      v-else-if="
+                        !isMonorepoChild(props.row.name) ||
+                        !restrictedChildTasks.includes(task.name)
+                      "
                       size="sm"
                       :color="task.color"
                       :icon="task.icon"
@@ -233,10 +269,50 @@ import type { ConfirmDialogParams } from "@/components/confirmDialog/confirmDial
 import { useResetStore } from "@/stores/resetToDefaultsStore";
 
 const gitTasks = ["GIT_PULL", "GIT_RESET", "GIT_CHECKOUT"];
+const restrictedChildTasks = ["GIT_CLONE", "REMOVE_SERVICE"];
 
 const isGitTask = (task: Task): boolean => {
   return gitTasks.includes(task.name);
 };
+
+const isMonorepoService = (serviceName: string): boolean => {
+  const service = servicesStore.getServiceByName(serviceName);
+  return !!service?.rootPath;
+};
+
+const isMonorepoRoot = (serviceName: string): boolean => {
+  const service = servicesStore.getServiceByName(serviceName);
+  return !!service?.isMonorepoRoot;
+};
+
+const isMonorepoChild = (serviceName: string): boolean => {
+  const service = servicesStore.getServiceByName(serviceName);
+  return !!service?.isMonorepoChild;
+};
+
+const orderedServices = computed(() => {
+  const services = [...servicesStore.servicesStatus];
+  return services.sort((a, b) => {
+    const serviceA = servicesStore.getServiceByName(a.name);
+    const serviceB = servicesStore.getServiceByName(b.name);
+
+    if (!serviceA || !serviceB) return 0;
+
+    const rootA = serviceA.rootPath || serviceA.name;
+    const rootB = serviceB.rootPath || serviceB.name;
+
+    if (rootA !== rootB) {
+      return rootA.localeCompare(rootB);
+    }
+
+    if (serviceA.isMonorepoRoot) return -1;
+    if (serviceB.isMonorepoRoot) return 1;
+
+    return (serviceA.relativePath || serviceA.name).localeCompare(
+      serviceB.relativePath || serviceB.name,
+    );
+  });
+});
 
 const servicesStore = useServicesStore();
 const tasksStore = useTasksStore();
@@ -328,8 +404,14 @@ const runTask = (task: string, service: string) => {
 };
 
 const runAllTaskForSelectedServices = (task: string) => {
+  const isRestrictedForChild =
+    restrictedChildTasks.includes(task) || gitTasks.includes(task);
+
   for (const service of servicesStore.services) {
     if (settingStore.selectedServices.includes(service.name)) {
+      if (isRestrictedForChild && isMonorepoChild(service.name)) {
+        continue;
+      }
       tasksStore.runTask(task, service.name);
     }
   }

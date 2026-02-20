@@ -24,8 +24,25 @@ export class GitService {
         .find((s) => s.name === serviceName);
       if (service) {
         const cwd = this.servicesService.getServicePath(serviceName);
-        await this.commandService.runCommandWithLog(
-          `git pull --ff-only`,
+        const currentBranch = await this.commandService.runCommandWithLog(
+          'git symbolic-ref --short HEAD',
+          serviceName,
+          cwd,
+          false,
+        );
+
+        await this.commandService.runProcess(
+          DefaultTask.GIT_PULL,
+          `git fetch origin refs/heads/${currentBranch.trim()}`,
+          '',
+          serviceName,
+          cwd,
+        );
+
+        await this.commandService.runProcess(
+          DefaultTask.GIT_PULL,
+          `git merge --ff-only FETCH_HEAD`,
+          '',
           serviceName,
           cwd,
         );
@@ -34,6 +51,7 @@ export class GitService {
           service,
           cwd,
         );
+
         if (change) {
           this.servicesService.setServiceRunningTask(service.name, '');
           this.eventsGateway.sendStatusUpdateToClient();
@@ -69,7 +87,7 @@ export class GitService {
 
     const cwd = this.servicesService.getServicePath(serviceName);
     const command = `git push ${
-      upstream ? '--set-upstream ' + upstream : ''
+        upstream ? '--set-upstream ' + upstream : ''
     } ${branchName}`;
 
     await this.commandService.runCommandWithLog(

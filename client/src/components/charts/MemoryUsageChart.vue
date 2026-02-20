@@ -65,7 +65,7 @@ const regenerateSeries = () => {
         return {
           name: service.name.replace("TF_", ""),
           itemStyle: {
-            color: lighten(getPaletteColor(service.color), 20),
+            color: lighten(getPaletteColor(service.color || 'blue-8'), 20),
           },
         };
       },
@@ -74,7 +74,7 @@ const regenerateSeries = () => {
 
   option.value.series = [];
   for (const service of servicesStore.services) {
-    const seriesColor = lighten(getPaletteColor(service.color), 20);
+    const seriesColor = lighten(getPaletteColor(service.color || 'blue-8'), 20);
     (option.value.series as any[]).push({
       name: service.name.replace("TF_", ""),
       type: "line",

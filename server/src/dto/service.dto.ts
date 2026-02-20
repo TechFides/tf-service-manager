@@ -10,6 +10,10 @@ export class ServiceDto {
   gitUrl: string;
   packageManager: PackageManager;
   tasks: TaskDto[];
+  rootPath?: string;
+  relativePath?: string;
+  isMonorepoRoot?: boolean;
+  isMonorepoChild?: boolean;
 }
 
 export class TaskDto {
