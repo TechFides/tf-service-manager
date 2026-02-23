@@ -10,10 +10,9 @@
 Service manager for node.js ecosystem and local development, suited for microservices architecture.
 
 # Features
-- Service management
-  - support for monorepos and multirepos
-  - running standard tasks
-  - running npm commands
+* Service management
+  * running standard tasks
+  * running npm commands
 * Monitoring
   * CPU usage
   * RAM usage
@@ -48,13 +47,12 @@ The file has the following format:
   "git_interval": 5,
   "services": [
     {
-      "name": "STANDARD_SERVICE",
+      "name": "SERVICE",
       "npmRunLifecycle": "dev",
       "gitUrl": "gitlab.com/organization/repository",
       "port": 3000,
       "appUrlSuffix": "api-docs",
       "color": "teal-9",
-      "packageManager": "npm",
       "genericTasks": [
         "COPY_ENV"
       ],
@@ -68,32 +66,6 @@ The file has the following format:
         }
       ],
       "defaultGitBranch": "develop"
-    },
-    {
-      "name": "MONOREPO_ROOT",
-      "gitUrl": "gitlab.com/organization/monorepo",
-      "defaultGitBranch": "main",
-      "packageManager": "npm",
-      "npmRunLifecycle": "start",
-      "subservices": [
-        {
-          "name": "SUB_SERVICE_1",
-          "path": "apps/sub-service-1",
-          "port": 4200,
-          "npmRunLifecycle": "dev",
-          "color": "blue-7",
-          "genericTasks": [
-            "COPY_ENV"
-          ]
-        },
-        {
-          "name": "SUB_SERVICE_2",
-          "path": "packages/sub-service-2",
-          "port": 4201,
-          "npmRunLifecycle": "dev",
-          "color": "orange-6"
-        }
-      ]
     }
   ],
   "generic_tasks": [
@@ -126,12 +98,9 @@ Services consist of the following configuration options
 - `port` - port the service uses
 - `appUrlSuffix` - added to app URL in frontend
 - `color` - service's color in FE, see https://quasar.dev/style/color-palette
-- `packageManager` - package manager used by the service (`npm`, `pnpm`, or `yarn`)
 - `genericTasks` - names of generic tasks to use, these are defined in the generic tasks section (optional)
 - `tasks` - list of tasks defined for the service (optional)
-- `defaultGitBranch` - branch to checkout with GIT_CHECKOUT command when no branch is provided via an attribute
-- `subservices` - list of subservices in a monorepo (optional)
-- `path` - relative path to the subservice within the monorepo root (required for subservices)
+- `defaultGitBranch` - branch to checkout with GIT\_CHECKOUT command when no branch is provided via an attribute
 
 ## Services statuses
 - `STOPPED` - service is stopped and not running
@@ -175,7 +144,6 @@ You can specify multiple special sequences that will be replaced based on the op
 - `%{yarnCommand}` - YARN command for the operating system
 - `%{packageManagerCommand}` - Package manager command for the operating system (uses packaged manager defined in service config or default NPM)
 - `%{service}` - service name
-- `%{ROOT_DIR}` - monorepo root directory path
 
 # Troubleshooting
 if something goes wrong

@@ -270,42 +270,13 @@ export class ServicesService {
   }
 
   setServiceRunStatus(service: string, status: ServiceRunStatus): void {
-    const serviceItem = this.services.find((s) => s.name === service);
-    serviceItem.runStatus = status;
-
-    // Propagate status to children if it's a monorepo root
-    if (serviceItem.isMonorepoRoot) {
-      for (const svc of this.services) {
-        if (
-          svc.isMonorepoChild &&
-          svc.rootPath === serviceItem.rootPath &&
-          svc.process === undefined // Only propagate if the child doesn't have its own independent process
-        ) {
-          svc.runStatus = status;
-        }
-      }
-    }
+    this.services.find((s) => s.name === service).runStatus = status;
   }
 
   setServiceProcess(service: string, process?: ChildProcessWithoutNullStreams) {
     const serviceItem = this.services.find((s) => s.name === service);
     serviceItem.process = process;
-
-    // Propagate process-related cleanup/status to children if it's a monorepo root
-    if (serviceItem.isMonorepoRoot) {
-      for (const svc of this.services) {
-        if (svc.isMonorepoChild && svc.rootPath === serviceItem.rootPath) {
-          if (process === null || process === undefined) {
-            svc.monitorStats = {
-              cpuPercent: 0,
-              memoryMegaBytes: 0,
-            };
-          }
-        }
-      }
-    }
-
-    if (process === null || process === undefined) {
+    if (process === null) {
       serviceItem.monitorStats = {
         cpuPercent: 0,
         memoryMegaBytes: 0,
