@@ -3,12 +3,13 @@
   "git_interval": 5,
   "services": [
     {
-      "name": "SERVICE",
+      "name": "STANDARD_SERVICE",
       "npmRunLifecycle": "dev",
       "gitUrl": "gitlab.com/organization/repository",
       "port": 3000,
       "appUrlSuffix": "api-docs",
       "color": "teal-9",
+      "packageManager": "npm",
       "genericTasks": [
         "COPY_ENV"
       ],
@@ -22,6 +23,32 @@
         }
       ],
       "defaultGitBranch": "develop"
+    },
+    {
+      "name": "MONOREPO_ROOT",
+      "gitUrl": "gitlab.com/organization/monorepo",
+      "defaultGitBranch": "main",
+      "packageManager": "npm",
+      "npmRunLifecycle": "start",
+      "subservices": [
+        {
+          "name": "SUB_SERVICE_1",
+          "path": "apps/sub-service-1",
+          "port": 4200,
+          "npmRunLifecycle": "dev",
+          "color": "blue-7",
+          "genericTasks": [
+            "COPY_ENV"
+          ]
+        },
+        {
+          "name": "SUB_SERVICE_2",
+          "path": "packages/sub-service-2",
+          "port": 4201,
+          "npmRunLifecycle": "dev",
+          "color": "orange-6"
+        }
+      ]
     }
   ],
   "generic_tasks": [
