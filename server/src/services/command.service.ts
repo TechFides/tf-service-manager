@@ -102,7 +102,7 @@ export const baseTasks: Task[] = [
     runIfNotCloned: false,
     runIfRunStatusIs: [ServiceRunStatus.STOPPED],
     color: 'negative',
-    icon: 'highlight_off',
+    icon: 'delete_forever',
   },
   {
     name: DefaultTask.START_SERVICE,
